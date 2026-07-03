@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quizlet</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topnav">
+    <div class="topnav-left">
+      <a href="#/" class="logo">Quizlet</a>
+    </div>
+    <div class="topnav-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+      <input type="search" id="global-search" placeholder="Flash kartları, ders kitaplarını, soruları arayın" />
+    </div>
+    <div class="topnav-right">
+      <button class="create-btn" title="Oluştur">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <div class="avatar" title="hasan">H</div>
+    </div>
+  </header>
+
+  <div class="shell">
+    <nav class="sidebar" id="sidebar"></nav>
+    <main id="view"></main>
+  </div>
+
+  <!-- Veri dosyaları -->
+  <script src="data/words.js"></script>
+  <script src="data/phrases.js"></script>
+  <script src="data/irregular.js"></script>
+  <script src="data/verbs.js"></script>
+  <script src="data/grammar.js"></script>
+  <script src="data/quiz.js"></script>
+  <!-- Uygulama -->
+  <script src="js/app.js"></script>
+</body>
+</html>
