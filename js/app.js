@@ -676,22 +676,47 @@
   function renderLearnMode(setId) {
     var s = getSet(setId);
     if (!s) { location.hash = "#/"; return; }
-    startLearn(s, s.terms.map(function (_, i) { return i; }));
+    startLearn(s, s.terms.map(function (_, i) { return i; }), { persist: true });
   }
 
-  function startLearn(s, indices) {
+  function startLearn(s, indices, opts) {
     if (s.terms.length < 2 || !indices.length) {
       setPage('<div class="mode-screen">' + modeTopbar(s, "Öğren", I.learn) +
         '<p class="empty-note">Bu mod için en az 2 terim gerekli.</p></div>', { mode: true });
       return;
     }
 
-    var order = shuffle(indices.slice());
+    // Tam set çalışırken ilerleme localStorage'a kaydedilir; sayfa yenilense de
+    // set bitene kadar kaldığın yerden devam edersin.
+    var persist = !!(opts && opts.persist);
+    var saveKey = "learn_" + s.id;
+
+    var order, stage, wrongCount, roundNum;
+    var saved = persist ? store.get(saveKey, null) : null;
+    if (saved && saved.order && saved.order.length) {
+      // Silinen kelimeleri çıkar, sonradan eklenenleri sona ekle
+      order = saved.order.filter(function (i) { return i >= 0 && i < s.terms.length; });
+      indices.forEach(function (i) { if (order.indexOf(i) === -1) order.push(i); });
+      stage = saved.stage || {};
+      order.forEach(function (i) { if (stage[i] !== 1 && stage[i] !== 2) stage[i] = 0; });
+      wrongCount = saved.wrong || 0;
+      roundNum = saved.round || 0;
+    } else {
+      order = shuffle(indices.slice());
+      stage = {}; // 0: yeni, 1: çoktan seçmeli bilindi, 2: yazılı da bilindi (öğrenildi)
+      order.forEach(function (i) { stage[i] = 0; });
+      wrongCount = 0;
+      roundNum = 0;
+    }
     var total = order.length;
-    var stage = {}; // 0: yeni, 1: çoktan seçmeli bilindi, 2: yazılı da bilindi (öğrenildi)
-    order.forEach(function (i) { stage[i] = 0; });
-    var wrongCount = 0, roundNum = 0;
     var queue = [];
+
+    function persistState() {
+      if (persist) store.set(saveKey, { order: order, stage: stage, wrong: wrongCount, round: roundNum });
+    }
+    function clearState() {
+      if (persist) store.set(saveKey, null);
+    }
 
     setPage('<div class="mode-screen">' + modeTopbar(s, "Öğren", I.learn) +
       '<div class="mode-body"><div class="mode-inner" id="learn-inner"></div></div></div>', { mode: true });
@@ -710,6 +735,7 @@
     function startRound() {
       queue = order.filter(function (i) { return stage[i] < 2; }).slice(0, LEARN_ROUND);
       roundNum++;
+      persistState();
       ask();
     }
 
@@ -766,6 +792,7 @@
           queue.push(queue.shift()); // turun sonunda tekrar sorulsun
           setTimeout(ask, 2200);
         }
+        persistState();
         updateProgress();
       }
       speak(t.term); // soru gelince kelimeyi otomatik seslendir
@@ -784,6 +811,7 @@
         $$('.opt-btn[data-opt="' + ti + '"]', inner)[0].classList.add("correct");
         $("#learn-feedback").innerHTML = '<div class="feedback-msg no">Sorun değil — doğrusu işaretlendi, tur içinde tekrar soracağım.</div>';
         queue.push(queue.shift());
+        persistState();
         updateProgress();
         setTimeout(ask, 2200);
       });
@@ -816,6 +844,7 @@
       var answered = false;
       function grade(given, skipped) {
         if (answered) return;
+        if (!skipped && !given.trim()) return; // boş cevapla Enter yanlış sayılmasın
         answered = true;
         input.disabled = true;
         if (!skipped && isCorrectAnswer(given, t.term)) {
@@ -826,6 +855,7 @@
           $("#learn-form").style.display = "none";
           $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">Harikasın!</div>';
           speak(t.term);
+          persistState();
           updateProgress();
           setTimeout(ask, 1000);
         } else {
@@ -833,6 +863,7 @@
           addMiss(s.id, ti);
           resetHit(s.id, ti);
           queue.push(queue.shift());
+          persistState();
           $("#learn-form").style.display = "none";
           $("#learn-feedback").innerHTML =
             (skipped || !given.trim() ? "" :
@@ -844,9 +875,14 @@
           speak(t.term); // doğru cevabı otomatik seslendir
           $("#ans-speak").addEventListener("click", function () { speak(t.term); });
           var went = false;
+          var shownAt = Date.now();
           function cont() { if (went) return; went = true; ask(); }
           $("#learn-cont").addEventListener("click", cont);
-          keyHandler = function (e) { if (e.key === "Enter") cont(); };
+          // Cevabı gönderen Enter'ın (basılı tutma/çift basma) ekranı hemen geçmemesi için
+          // kısa bir bekleme süresi ve tuş tekrarı koruması
+          keyHandler = function (e) {
+            if (e.key === "Enter" && !e.repeat && Date.now() - shownAt > 500) cont();
+          };
         }
       }
       $("#learn-form").addEventListener("submit", function (e) { e.preventDefault(); grade(input.value, false); });
@@ -867,13 +903,17 @@
         "</div>" +
         '<div class="btn-row"><button class="btn primary big" id="learn-next-round">Devam et</button></div></div>';
       var went = false;
+      var shownAt = Date.now();
       function go() { if (went) return; went = true; startRound(); }
       $("#learn-next-round").addEventListener("click", go);
-      keyHandler = function (e) { if (e.key === "Enter") go(); };
+      keyHandler = function (e) {
+        if (e.key === "Enter" && !e.repeat && Date.now() - shownAt > 500) go();
+      };
     }
 
     function finish() {
       keyHandler = null;
+      clearState(); // set bitti, sonraki Öğren sıfırdan başlasın
       setProgress(100);
       $("#learn-inner").innerHTML = '<div class="finish-screen">' +
         '<div class="big-emoji">🎉</div>' +
@@ -888,7 +928,10 @@
         '<button class="btn primary big" id="learn-again">Baştan başla</button>' +
         '<a class="btn ghost big" href="#/set/' + s.id + '">Sete dön</a>' +
         "</div></div>";
-      $("#learn-again").addEventListener("click", function () { startLearn(s, indices); });
+      $("#learn-again").addEventListener("click", function () {
+        clearState();
+        startLearn(s, indices, opts);
+      });
     }
 
     startRound();
