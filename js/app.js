@@ -29,13 +29,39 @@
       try { localStorage.setItem("qz_" + k, JSON.stringify(v)); } catch (e) {}
     }
   };
+  /* Sesli okuma: önce tarayıcının kendi İngilizce sesi denenir;
+     yoksa (Linux'ta sık olur) Google Translate'in sesi çalınır. */
+  var enVoice = null;
+  function pickVoice() {
+    var vs = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    enVoice = null;
+    for (var i = 0; i < vs.length; i++) {
+      if (/^en/i.test(vs[i].lang)) { enVoice = vs[i]; break; }
+    }
+  }
+  if (window.speechSynthesis) {
+    pickVoice();
+    window.speechSynthesis.onvoiceschanged = pickVoice;
+  }
+  var ttsAudio = null;
   function speak(text, lang) {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(text);
-    u.lang = lang || "en-US";
-    u.rate = 0.95;
-    window.speechSynthesis.speak(u);
+    lang = (lang || "en-US").split("-")[0];
+    if (window.speechSynthesis && enVoice) {
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      u.voice = enVoice;
+      u.lang = enVoice.lang;
+      u.rate = 0.95;
+      window.speechSynthesis.speak(u);
+      return;
+    }
+    // Yedek: Google Translate sesi (internet gerektirir)
+    try {
+      if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
+      ttsAudio = new Audio("https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=" +
+        lang + "&q=" + encodeURIComponent(text));
+      ttsAudio.play();
+    } catch (e) {}
   }
 
   /* ---------- İkonlar ---------- */
@@ -706,7 +732,8 @@
       var inner = $("#learn-inner");
       inner.innerHTML = '<div class="learn-card">' +
         '<div class="q-label">Terim</div>' +
-        '<div class="q-word">' + esc(t.term) + "</div>" +
+        '<div class="q-row"><div class="q-word">' + esc(t.term) + "</div>" +
+        '<button class="icon-btn" id="q-speak" title="Sesli oku">' + I.audio + "</button></div>" +
         '<div id="learn-feedback"></div>' +
         '<div class="q-prompt">Doğru tanımı seç</div>' +
         '<div class="opt-grid">' + opts.map(function (oi, n) {
@@ -741,6 +768,8 @@
         }
         updateProgress();
       }
+      speak(t.term); // soru gelince kelimeyi otomatik seslendir
+      $("#q-speak").addEventListener("click", function () { speak(t.term); });
       $$(".opt-btn", inner).forEach(function (b) {
         b.addEventListener("click", function () { choose(b); });
       });
@@ -796,8 +825,9 @@
           queue.shift();
           $("#learn-form").style.display = "none";
           $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">Harikasın!</div>';
+          speak(t.term);
           updateProgress();
-          setTimeout(ask, 800);
+          setTimeout(ask, 1000);
         } else {
           wrongCount++;
           addMiss(s.id, ti);
@@ -807,9 +837,12 @@
           $("#learn-feedback").innerHTML =
             (skipped || !given.trim() ? "" :
               '<div class="ans-label">Senin cevabın</div><div class="ans-box no">' + esc(given) + "</div>") +
-            '<div class="ans-label">Doğru cevap</div><div class="ans-box ok">' + esc(t.term) + "</div>" +
+            '<div class="ans-label">Doğru cevap</div><div class="ans-box ok">' + esc(t.term) +
+            ' <button class="icon-btn small" id="ans-speak" title="Sesli oku">' + I.audio + "</button></div>" +
             '<div class="btn-row" style="justify-content:flex-start;margin-top:1.25rem">' +
             '<button class="btn primary" id="learn-cont">Devam et</button></div>';
+          speak(t.term); // doğru cevabı otomatik seslendir
+          $("#ans-speak").addEventListener("click", function () { speak(t.term); });
           var went = false;
           function cont() { if (went) return; went = true; ask(); }
           $("#learn-cont").addEventListener("click", cont);

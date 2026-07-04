@@ -427,6 +427,8 @@ body.mode-open main { padding: 0; }
 }
 .learn-card .q-label { font-size: 0.8rem; font-weight: 700; color: var(--gray); margin-bottom: 1.5rem; }
 .learn-card .q-word { font-size: 1.8rem; font-weight: 500; color: var(--navy); flex: 1; overflow-wrap: anywhere; }
+.learn-card .q-row { display: flex; align-items: flex-start; gap: 1rem; flex: 1; }
+.ans-box .icon-btn { display: inline-flex; vertical-align: middle; }
 .learn-card .q-prompt { font-size: 0.9rem; font-weight: 700; color: var(--gray); margin-bottom: 1rem; }
 
 .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
