@@ -52,8 +52,25 @@
     shuffle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>',
     left: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
     right: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
-    close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>'
+    close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+    undo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a6.5 6.5 0 0 1 0 13H11"/></svg>',
+    progress: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg>',
+    tasks: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3h6v3H9z"/><path d="m9 14 2 2 4-4"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="m6 7 1 14h10l1-14"/><path d="M10 11v6M14 11v6"/></svg>',
+    pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m17 3 4 4L8 20l-5 1 1-5z"/></svg>'
   };
+
+  /* Yazılı cevap kontrolü: büyük/küçük harfe bakmaz, "to " önekini ve
+     "/" ile ayrılmış alternatif cevapları kabul eder */
+  function isCorrectAnswer(given, want) {
+    function norm(x) { return String(x || "").trim().toLocaleLowerCase("en").replace(/\s+/g, " "); }
+    var g = norm(given);
+    if (!g) return false;
+    return String(want).split("/").map(norm).some(function (w) {
+      return g === w || (w.indexOf("to ") === 0 && g === w.slice(3));
+    });
+  }
 
   /* ---------- Veri: setleri kur ---------- */
   function buildSets() {
@@ -95,6 +112,60 @@
     return null;
   }
 
+  /* ---------- Yanlış hafızası ----------
+     Yanlış cevaplanan terimler localStorage'da sayaçla tutulur.
+     Her yanlış sayacı +1 artırır, her doğru -1 azaltır; sıfırlanınca listeden çıkar. */
+  function hardKey(setId) { return "hard_" + setId; }
+  function getHard(setId) { return store.get(hardKey(setId), {}); }
+  function addMiss(setId, i) {
+    var h = getHard(setId);
+    h[i] = (h[i] || 0) + 1;
+    store.set(hardKey(setId), h);
+  }
+  function decMiss(setId, i) {
+    var h = getHard(setId);
+    if (h[i] == null) return false;
+    h[i]--;
+    if (h[i] <= 0) delete h[i];
+    store.set(hardKey(setId), h);
+    return true;
+  }
+  function hardIndices(s) {
+    var h = getHard(s.id);
+    return s.terms.map(function (_, i) { return i; }).filter(function (i) { return h[i]; });
+  }
+
+  /* ---------- Doğru serisi ----------
+     Üst üste doğru cevap sayısı tutulur; bir yanlış seriyi sıfırlar.
+     MASTERED_AT seriye ulaşan kelime "kesin öğrenildi",
+     TROUBLE_AT yanlışa ulaşan kelime "sürekli hata" sayılır. */
+  var MASTERED_AT = 3, TROUBLE_AT = 3;
+  function goodKey(setId) { return "good_" + setId; }
+  function getGood(setId) { return store.get(goodKey(setId), {}); }
+  function addHit(setId, i) {
+    var g = getGood(setId);
+    g[i] = (g[i] || 0) + 1;
+    store.set(goodKey(setId), g);
+  }
+  function resetHit(setId, i) {
+    var g = getGood(setId);
+    var prev = g[i] || 0;
+    if (g[i] != null) { delete g[i]; store.set(goodKey(setId), g); }
+    return prev;
+  }
+  function setHit(setId, i, v) {
+    var g = getGood(setId);
+    if (v > 0) g[i] = v; else delete g[i];
+    store.set(goodKey(setId), g);
+  }
+  function decHit(setId, i) {
+    var g = getGood(setId);
+    if (g[i] == null) return;
+    g[i]--;
+    if (g[i] <= 0) delete g[i];
+    store.set(goodKey(setId), g);
+  }
+
   /* ---------- Yıldızlar ---------- */
   function starKey(setId) { return "stars_" + setId; }
   function isStarred(setId, i) { return (store.get(starKey(setId), [])).indexOf(i) !== -1; }
@@ -110,6 +181,8 @@
     var html = "";
     html += '<a class="side-link' + (active === "home" ? " active" : "") + '" href="#/">' + I.home + "Ana sayfa</a>";
     html += '<a class="side-link' + (active === "library" ? " active" : "") + '" href="#/kitaplik">' + I.library + "Kitaplığın</a>";
+    html += '<a class="side-link' + (active === "progress" ? " active" : "") + '" href="#/ilerleme">' + I.progress + "İlerlemen</a>";
+    html += '<a class="side-link' + (active === "course" ? " active" : "") + '" href="#/kurs">' + I.tasks + "Kurs ilerlemesi</a>";
     html += '<a class="side-link' + (active === "grammar" ? " active" : "") + '" href="#/gramer">' + I.grammar + "Gramer notları</a>";
     html += '<a class="side-link' + (active === "quiz" ? " active" : "") + '" href="#/quiz">' + I.test + "Quiz</a>";
     html += '<hr class="side-divider" />';
@@ -198,21 +271,57 @@
 
     html += flashcardHtml(s);
 
-    html += '<div class="author-row"><span class="avatar">H</span><div class="who">Oluşturan<b>hasan</b></div></div>';
-    html += '<div class="terms-head"><h2>Bu setteki terimler (' + s.terms.length + ")</h2></div>";
-    html += s.terms.map(function (t, i) {
-      return '<div class="term-row">' +
+    var hard = getHard(s.id);
+    var good = getGood(s.id);
+    var hardIdx = hardIndices(s);
+    var restIdx = s.terms.map(function (_, i) { return i; }).filter(function (i) { return !hard[i]; });
+
+    function rowHtml(i) {
+      var t = s.terms[i];
+      var mc = hard[i] || 0;
+      var mastered = !mc && (good[i] || 0) >= MASTERED_AT;
+      return '<div class="term-row' + (mc ? " hard" : mastered ? " mastered" : "") + '">' +
         '<div class="t-term">' + esc(t.term) + "</div>" +
         '<div class="t-def">' + esc(t.def) + (t.example ? "<small>" + esc(t.example) + "</small>" : "") + "</div>" +
         '<div class="t-actions">' +
+        (mc ? '<span class="miss-badge" title="Yanlış cevap sayısı">' + mc + " kez yanlış</span>" : "") +
+        (mastered ? '<span class="hit-badge" title="' + good[i] + ' kez üst üste doğru">Öğrenildi ✓</span>' : "") +
         '<button class="icon-btn small star-btn' + (isStarred(s.id, i) ? " starred" : "") + '" data-star="' + i + '" title="Yıldızla">' + I.star + "</button>" +
         '<button class="icon-btn small" data-speak="' + i + '" title="Sesli oku">' + I.audio + "</button>" +
         "</div></div>";
-    }).join("");
+    }
+
+    if (hardIdx.length) {
+      html += '<div class="hard-banner">' +
+        '<div class="hb-text"><h3>Yanlış yaptıkların seni bekliyor</h3>' +
+        "<p>" + hardIdx.length + " terimi yanlış cevapladın. Bunları tekrar etmek öğrenmenin en hızlı yolu.</p></div>" +
+        '<div class="hb-actions">' +
+        '<a class="btn primary" href="#/set/' + s.id + '/ogren-yanlis">Yanlışlarını öğren</a>' +
+        '<a class="btn ghost" href="#/set/' + s.id + '/kartlar-yanlis">Kartlarla tekrar et</a>' +
+        '<button class="btn ghost" id="hard-clear" title="Yanlış listesini sıfırla">Temizle</button>' +
+        "</div></div>";
+    }
+
+    html += '<div class="author-row"><span class="avatar">H</span><div class="who">Oluşturan<b>hasan</b></div></div>';
+    if (hardIdx.length) {
+      html += '<div class="terms-head"><h2>Hâlâ öğreniyorum (' + hardIdx.length + ")</h2></div>";
+      html += hardIdx.map(rowHtml).join("");
+      html += '<div class="terms-head"><h2>Diğer terimler (' + restIdx.length + ")</h2></div>";
+      html += restIdx.map(rowHtml).join("");
+    } else {
+      html += '<div class="terms-head"><h2>Bu setteki terimler (' + s.terms.length + ")</h2></div>";
+      html += restIdx.map(rowHtml).join("");
+    }
     html += "</div>";
 
     setPage(html, { side: "set:" + s.id });
     bindFlashcard(s);
+
+    var hc = $("#hard-clear");
+    if (hc) hc.addEventListener("click", function () {
+      store.set(hardKey(s.id), {});
+      renderSet(setId);
+    });
 
     view.addEventListener("click", function (e) {
       var star = e.target.closest("[data-star]");
@@ -336,47 +445,262 @@
   function renderCardsMode(setId) {
     var s = getSet(setId);
     if (!s) { location.hash = "#/"; return; }
+    startCards(s, s.terms.map(function (_, i) { return i; }));
+  }
+
+  function startCards(s, indices) {
+    var order = indices.slice();
+    var pos = 0, flipped = false, painted = false, shuffled = false;
+    var sortOn = false;
+    var know = [], learning = [], history = [];
+
     var html = '<div class="mode-screen">' + modeTopbar(s, "Kartlar", I.cards) +
-      '<div class="mode-body"><div class="mode-inner">' + flashcardHtml(s) + "</div></div></div>";
-    fcState = { idx: 0, order: s.terms.map(function (_, i) { return i; }), shuffled: false, flipped: false };
+      '<div class="mode-body"><div class="mode-inner">' +
+      '<div class="sort-counts" id="sort-counts">' +
+      '<span class="count-pill learning">Hâlâ öğreniyorum · <b id="cnt-learning">0</b></span>' +
+      '<span class="count-pill know">Biliyorum · <b id="cnt-know">0</b></span>' +
+      "</div>" +
+      '<div class="fc-stage" id="fc-stage"><div class="flashcard" id="fc">' +
+      '<div class="fc-face front">' +
+      '<span class="fc-side-label">' + esc(s.langs[0]) + "</span>" +
+      '<div class="fc-tools">' +
+      '<button class="icon-btn small" id="fc-speak" title="Sesli oku">' + I.audio + "</button>" +
+      '<button class="icon-btn small star-btn" id="fc-star" title="Yıldızla">' + I.star + "</button>" +
+      "</div>" +
+      '<div class="fc-word" id="fc-front"></div>' +
+      '<div class="fc-hint">Çevirmek için tıkla veya boşluk tuşuna bas</div>' +
+      "</div>" +
+      '<div class="fc-face back">' +
+      '<span class="fc-side-label">' + esc(s.langs[1]) + "</span>" +
+      '<div class="fc-word" id="fc-back"></div>' +
+      '<p class="fc-example" id="fc-example"></p>' +
+      "</div></div></div>" +
+      '<div class="fc-controls">' +
+      '<div class="side">' +
+      '<button class="icon-btn" id="fc-shuffle" title="Karıştır">' + I.shuffle + "</button>" +
+      '<button class="icon-btn" id="fc-undo" title="Geri al" style="display:none">' + I.undo + "</button>" +
+      "</div>" +
+      '<div class="center">' +
+      '<button class="icon-btn arrow" id="fc-prev" title="Önceki">' + I.left + "</button>" +
+      '<span class="fc-counter" id="fc-counter"></span>' +
+      '<button class="icon-btn arrow" id="fc-next" title="Sonraki">' + I.right + "</button>" +
+      "</div>" +
+      '<div class="side right"><label class="sort-toggle" title="Kartları bildiklerin ve öğrendiklerin olarak ayır">Kartları sırala' +
+      '<span class="switch"><input type="checkbox" id="fc-sort" /><span class="track"></span></span></label></div>' +
+      "</div></div></div></div>";
     setPage(html, { mode: true });
-    bindFlashcard(s);
-    // ilerleme çubuğunu kart konumuna bağla
-    var counter = $("#fc-counter");
-    var obs = new MutationObserver(function () {
-      setProgress(((fcState.idx + 1) / s.terms.length) * 100);
+
+    var card = $("#fc"), stageEl = $("#fc-stage");
+    var prevBtn = $("#fc-prev"), nextBtn = $("#fc-next"), undoBtn = $("#fc-undo");
+
+    function cur() { return s.terms[order[pos]]; }
+
+    function paint(anim) {
+      var t = cur();
+      card.classList.remove("flipped");
+      flipped = false;
+      if (anim) {
+        stageEl.classList.remove("swap-left", "swap-right");
+        void stageEl.offsetWidth; // animasyonu yeniden tetikle
+        stageEl.classList.add(anim);
+      }
+      setTimeout(function () {
+        $("#fc-front").textContent = t.term;
+        $("#fc-back").textContent = t.def;
+        $("#fc-example").textContent = t.example || "";
+      }, painted ? 150 : 0);
+      painted = true;
+      $("#fc-counter").textContent = (pos + 1) + " / " + order.length;
+      $("#fc-star").classList.toggle("starred", isStarred(s.id, order[pos]));
+      prevBtn.disabled = sortOn ? false : pos === 0;
+      undoBtn.disabled = !history.length;
+      setProgress(((pos + 1) / order.length) * 100);
+    }
+
+    function refreshUi() {
+      $("#sort-counts").style.visibility = sortOn ? "visible" : "hidden";
+      undoBtn.style.display = sortOn ? "" : "none";
+      $("#cnt-learning").textContent = learning.length;
+      $("#cnt-know").textContent = know.length;
+      if (sortOn) {
+        prevBtn.innerHTML = I.close; prevBtn.className = "icon-btn arrow mark-learning"; prevBtn.title = "Hâlâ öğreniyorum";
+        nextBtn.innerHTML = I.check; nextBtn.className = "icon-btn arrow mark-know"; nextBtn.title = "Biliyorum";
+      } else {
+        prevBtn.innerHTML = I.left; prevBtn.className = "icon-btn arrow"; prevBtn.title = "Önceki";
+        nextBtn.innerHTML = I.right; nextBtn.className = "icon-btn arrow"; nextBtn.title = "Sonraki";
+      }
+    }
+
+    function finishCards() {
+      keyHandler = null;
+      setProgress(100);
+      var inner = $(".mode-inner");
+      if (sortOn) {
+        inner.innerHTML = '<div class="finish-screen">' +
+          '<div class="big-emoji">' + (learning.length ? "👏" : "🏆") + "</div>" +
+          "<h1>Tüm kartları sıraladın!</h1>" +
+          "<p>" + (learning.length
+            ? learning.length + " kartı hâlâ öğreniyorsun. Onları tekrar etmek öğrenmenin en hızlı yolu."
+            : "Bu setteki her şeyi biliyorsun. Muhteşem!") + "</p>" +
+          '<div class="finish-stats">' +
+          '<div class="stat-pill ok"><div class="num">' + know.length + '</div><div class="lbl">Biliyorum</div></div>' +
+          '<div class="stat-pill mid"><div class="num">' + learning.length + '</div><div class="lbl">Hâlâ öğreniyorum</div></div>' +
+          "</div>" +
+          '<div class="btn-row">' +
+          (learning.length ? '<button class="btn primary big" id="cards-review">Zorlandığın ' + learning.length + " kartı tekrar et</button>" : "") +
+          '<button class="btn ' + (learning.length ? "ghost" : "primary") + ' big" id="cards-restart">Baştan başla</button>' +
+          '<a class="btn ghost big" href="#/set/' + s.id + '">Sete dön</a>' +
+          "</div></div>";
+        var rev = $("#cards-review");
+        if (rev) rev.addEventListener("click", function () { startCards(s, learning); });
+      } else {
+        inner.innerHTML = '<div class="finish-screen">' +
+          '<div class="big-emoji">🎉</div>' +
+          "<h1>Tüm kartları inceledin!</h1>" +
+          "<p>" + order.length + " kartın hepsini gözden geçirdin.</p>" +
+          '<div class="btn-row">' +
+          '<button class="btn primary big" id="cards-restart">Baştan başla</button>' +
+          '<a class="btn ghost big" href="#/set/' + s.id + '">Sete dön</a>' +
+          "</div></div>";
+      }
+      $("#cards-restart").addEventListener("click", function () { startCards(s, indices); });
+    }
+
+    function advance(kind) {
+      if (kind) {
+        (kind === "know" ? know : learning).push(order[pos]);
+        if (kind === "know") {
+          addHit(s.id, order[pos]);
+          history.push({ kind: kind, changed: decMiss(s.id, order[pos]) });
+        } else {
+          addMiss(s.id, order[pos]);
+          history.push({ kind: kind, prevGood: resetHit(s.id, order[pos]) });
+        }
+        $("#cnt-know").textContent = know.length;
+        $("#cnt-learning").textContent = learning.length;
+      }
+      if (pos === order.length - 1) { finishCards(); return; }
+      pos++;
+      paint(kind === "learning" ? "swap-left" : "swap-right");
+    }
+
+    function restartMarks() {
+      pos = 0; know = []; learning = []; history = [];
+      refreshUi();
+      paint();
+    }
+
+    card.addEventListener("click", function (e) {
+      if (e.target.closest(".icon-btn")) return;
+      flipped = !flipped;
+      card.classList.toggle("flipped", flipped);
     });
-    if (counter) obs.observe(counter, { childList: true });
-    setProgress((1 / s.terms.length) * 100);
+    nextBtn.addEventListener("click", function () { advance(sortOn ? "know" : null); });
+    prevBtn.addEventListener("click", function () {
+      if (sortOn) { advance("learning"); return; }
+      if (pos > 0) { pos--; paint("swap-left"); }
+    });
+    undoBtn.addEventListener("click", function () {
+      if (!history.length) return;
+      var h = history.pop();
+      (h.kind === "know" ? know : learning).pop();
+      pos--;
+      // yanlış hafızası ve doğru serisindeki etkiyi geri al
+      if (h.kind === "know") {
+        decHit(s.id, order[pos]);
+        if (h.changed) addMiss(s.id, order[pos]);
+      } else {
+        decMiss(s.id, order[pos]);
+        setHit(s.id, order[pos], h.prevGood);
+      }
+      refreshUi();
+      paint("swap-left");
+    });
+    $("#fc-shuffle").addEventListener("click", function () {
+      shuffled = !shuffled;
+      order = shuffled ? shuffle(indices) : indices.slice();
+      this.classList.toggle("on", shuffled);
+      restartMarks();
+    });
+    $("#fc-sort").addEventListener("change", function () {
+      sortOn = this.checked;
+      restartMarks();
+    });
+    $("#fc-speak").addEventListener("click", function () { speak(cur().term); });
+    $("#fc-star").addEventListener("click", function () {
+      toggleStar(s.id, order[pos]);
+      this.classList.toggle("starred");
+    });
+
+    keyHandler = function (e) {
+      if (e.key === " ") { e.preventDefault(); flipped = !flipped; card.classList.toggle("flipped", flipped); }
+      else if (e.key === "ArrowRight") nextBtn.click();
+      else if (e.key === "ArrowLeft") prevBtn.click();
+    };
+
+    refreshUi();
+    paint();
   }
 
   /* ================= ÖĞREN MODU ================= */
+  /* Quizlet Öğren: turlar halinde ilerler. Bir terim önce çoktan seçmeli,
+     sonraki turda yazılı sorulur; ikisi de doğruysa "öğrenildi" sayılır. */
+  var LEARN_ROUND = 7;
+
   function renderLearnMode(setId) {
     var s = getSet(setId);
     if (!s) { location.hash = "#/"; return; }
-    if (s.terms.length < 2) {
+    startLearn(s, s.terms.map(function (_, i) { return i; }));
+  }
+
+  function startLearn(s, indices) {
+    if (s.terms.length < 2 || !indices.length) {
       setPage('<div class="mode-screen">' + modeTopbar(s, "Öğren", I.learn) +
         '<p class="empty-note">Bu mod için en az 2 terim gerekli.</p></div>', { mode: true });
       return;
     }
 
-    var queue = shuffle(s.terms.map(function (_, i) { return i; }));
-    var total = queue.length;
-    var learned = 0, wrongCount = 0;
+    var order = shuffle(indices.slice());
+    var total = order.length;
+    var stage = {}; // 0: yeni, 1: çoktan seçmeli bilindi, 2: yazılı da bilindi (öğrenildi)
+    order.forEach(function (i) { stage[i] = 0; });
+    var wrongCount = 0, roundNum = 0;
+    var queue = [];
 
-    var html = '<div class="mode-screen">' + modeTopbar(s, "Öğren", I.learn) +
-      '<div class="mode-body"><div class="mode-inner" id="learn-inner"></div></div></div>';
-    setPage(html, { mode: true });
+    setPage('<div class="mode-screen">' + modeTopbar(s, "Öğren", I.learn) +
+      '<div class="mode-body"><div class="mode-inner" id="learn-inner"></div></div></div>', { mode: true });
 
-    function optionCount() { return Math.min(4, s.terms.length); }
+    function counts() {
+      var c = [0, 0, 0];
+      order.forEach(function (i) { c[stage[i]]++; });
+      return c;
+    }
+    function updateProgress() {
+      var sum = 0;
+      order.forEach(function (i) { sum += stage[i]; });
+      setProgress((sum / (total * 2)) * 100);
+    }
 
-    function question() {
-      if (!queue.length) { finish(); return; }
+    function startRound() {
+      queue = order.filter(function (i) { return stage[i] < 2; }).slice(0, LEARN_ROUND);
+      roundNum++;
+      ask();
+    }
+
+    function ask() {
+      updateProgress();
+      if (!queue.length) {
+        if (counts()[2] === total) finish(); else checkpoint();
+        return;
+      }
       var ti = queue[0];
+      if (stage[ti] === 0) askMC(ti); else askWritten(ti);
+    }
+
+    function askMC(ti) {
       var t = s.terms[ti];
-      // yanlış şıklar
       var others = shuffle(s.terms.map(function (_, i) { return i; }).filter(function (i) { return i !== ti; }))
-        .slice(0, optionCount() - 1);
+        .slice(0, Math.min(4, s.terms.length) - 1);
       var opts = shuffle([ti].concat(others));
 
       var inner = $("#learn-inner");
@@ -397,20 +721,23 @@
         $$(".opt-btn", inner).forEach(function (b) { b.disabled = true; });
         if (oi === ti) {
           btn.classList.add("correct");
-          $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">Harikasın!</div>';
-          learned++;
+          $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">Doğru! Sonraki turda bunu yazman istenecek.</div>';
+          stage[ti] = 1;
+          decMiss(s.id, ti);
+          addHit(s.id, ti);
           queue.shift();
-          setProgress((learned / total) * 100);
-          setTimeout(question, 800);
+          setTimeout(ask, 900);
         } else {
           btn.classList.add("wrong");
           wrongCount++;
+          addMiss(s.id, ti);
+          resetHit(s.id, ti);
           $$('.opt-btn[data-opt="' + ti + '"]', inner)[0].classList.add("correct");
           $("#learn-feedback").innerHTML = '<div class="feedback-msg no">Öğrenmek hata yapmaktır — doğrusu işaretlendi.</div>';
-          // yanlış bilineni kuyruğun sonuna at
-          queue.push(queue.shift());
-          setTimeout(question, 2200);
+          queue.push(queue.shift()); // turun sonunda tekrar sorulsun
+          setTimeout(ask, 2200);
         }
+        updateProgress();
       }
       $$(".opt-btn", inner).forEach(function (b) {
         b.addEventListener("click", function () { choose(b); });
@@ -424,13 +751,86 @@
       };
     }
 
+    function askWritten(ti) {
+      var t = s.terms[ti];
+      var inner = $("#learn-inner");
+      inner.innerHTML = '<div class="learn-card">' +
+        '<div class="q-label">Tanım</div>' +
+        '<div class="q-word">' + esc(t.def) + "</div>" +
+        '<div id="learn-feedback"></div>' +
+        '<div class="q-prompt">Cevabını yaz (' + esc(s.langs[0]) + ")</div>" +
+        '<form class="learn-form" id="learn-form" autocomplete="off">' +
+        '<input type="text" id="learn-input" placeholder="Cevabını yaz" autocomplete="off" />' +
+        '<button type="button" class="btn ghost" id="learn-skip">Bilmiyorum</button>' +
+        '<button type="submit" class="btn primary">Cevapla</button>' +
+        "</form></div>";
+      var input = $("#learn-input");
+      input.focus();
+      keyHandler = null;
+
+      var answered = false;
+      function grade(given, skipped) {
+        if (answered) return;
+        answered = true;
+        input.disabled = true;
+        if (!skipped && isCorrectAnswer(given, t.term)) {
+          stage[ti] = 2;
+          decMiss(s.id, ti);
+          addHit(s.id, ti);
+          queue.shift();
+          $("#learn-form").style.display = "none";
+          $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">Harikasın!</div>';
+          updateProgress();
+          setTimeout(ask, 800);
+        } else {
+          wrongCount++;
+          addMiss(s.id, ti);
+          resetHit(s.id, ti);
+          queue.push(queue.shift());
+          $("#learn-form").style.display = "none";
+          $("#learn-feedback").innerHTML =
+            (skipped || !given.trim() ? "" :
+              '<div class="ans-label">Senin cevabın</div><div class="ans-box no">' + esc(given) + "</div>") +
+            '<div class="ans-label">Doğru cevap</div><div class="ans-box ok">' + esc(t.term) + "</div>" +
+            '<div class="btn-row" style="justify-content:flex-start;margin-top:1.25rem">' +
+            '<button class="btn primary" id="learn-cont">Devam et</button></div>';
+          var went = false;
+          function cont() { if (went) return; went = true; ask(); }
+          $("#learn-cont").addEventListener("click", cont);
+          keyHandler = function (e) { if (e.key === "Enter") cont(); };
+        }
+      }
+      $("#learn-form").addEventListener("submit", function (e) { e.preventDefault(); grade(input.value, false); });
+      $("#learn-skip").addEventListener("click", function () { grade("", true); });
+    }
+
+    function checkpoint() {
+      keyHandler = null;
+      var c = counts();
+      $("#learn-inner").innerHTML = '<div class="finish-screen">' +
+        '<div class="big-emoji">💪</div>' +
+        "<h1>" + roundNum + ". tur bitti — harika gidiyorsun!</h1>" +
+        "<p>Bir terimi tam öğrenmek için önce doğru şıkkı seçmen, sonra terimi yazman gerekiyor.</p>" +
+        '<div class="finish-stats">' +
+        '<div class="stat-pill ok"><div class="num">' + c[2] + '</div><div class="lbl">Öğrenildi</div></div>' +
+        '<div class="stat-pill mid"><div class="num">' + c[1] + '</div><div class="lbl">Devam ediyor</div></div>' +
+        '<div class="stat-pill"><div class="num">' + c[0] + '</div><div class="lbl">Kalan</div></div>' +
+        "</div>" +
+        '<div class="btn-row"><button class="btn primary big" id="learn-next-round">Devam et</button></div></div>';
+      var went = false;
+      function go() { if (went) return; went = true; startRound(); }
+      $("#learn-next-round").addEventListener("click", go);
+      keyHandler = function (e) { if (e.key === "Enter") go(); };
+    }
+
     function finish() {
       keyHandler = null;
       setProgress(100);
       $("#learn-inner").innerHTML = '<div class="finish-screen">' +
         '<div class="big-emoji">🎉</div>' +
-        "<h1>Tebrikler! Bu turu tamamladın.</h1>" +
-        "<p>" + total + " terimin hepsini doğru bildin." + (wrongCount ? " Toplam " + wrongCount + " yanlış deneme yaptın." : " Hem de hiç hata yapmadan!") + "</p>" +
+        "<h1>Tebrikler! Hepsini öğrendin.</h1>" +
+        "<p>" + total + " terimin tamamını hem seçerek hem yazarak doğru bildin." +
+        (wrongCount ? " Toplam " + wrongCount + " yanlış deneme yaptın." : " Hem de hiç hata yapmadan!") + "</p>" +
         '<div class="finish-stats">' +
         '<div class="stat-pill ok"><div class="num">' + total + '</div><div class="lbl">Öğrenilen</div></div>' +
         '<div class="stat-pill no"><div class="num">' + wrongCount + '</div><div class="lbl">Yanlış deneme</div></div>' +
@@ -439,10 +839,10 @@
         '<button class="btn primary big" id="learn-again">Baştan başla</button>' +
         '<a class="btn ghost big" href="#/set/' + s.id + '">Sete dön</a>' +
         "</div></div>";
-      $("#learn-again").addEventListener("click", function () { renderLearnMode(setId); });
+      $("#learn-again").addEventListener("click", function () { startLearn(s, indices); });
     }
 
-    question();
+    startRound();
   }
 
   /* ================= TEST MODU ================= */
@@ -569,9 +969,7 @@
         var ok = false;
         if (q.type === "written") {
           var inp = $('input[data-q="' + n + '"]', box);
-          var given = (inp.value || "").trim().toLocaleLowerCase("en");
-          var want = t.term.trim().toLocaleLowerCase("en");
-          ok = given === want || (want.indexOf("to ") === 0 && given === want.slice(3));
+          ok = isCorrectAnswer(inp.value, t.term);
           inp.disabled = true;
           res.innerHTML = ok
             ? '<div class="tq-answer ok">✓ Doğru</div>'
@@ -597,7 +995,8 @@
             ? '<div class="tq-answer ok">✓ Doğru</div>'
             : '<div class="tq-answer no">✗ ' + (q.truth ? "Bu eşleşme doğruydu." : "Doğrusu: " + esc(t.term) + " = " + esc(t.def)) + "</div>";
         }
-        if (ok) correct++;
+        if (ok) { correct++; decMiss(s.id, q.ti); addHit(s.id, q.ti); }
+        else { addMiss(s.id, q.ti); resetHit(s.id, q.ti); }
         box.classList.add(ok ? "graded-ok" : "graded-no");
       });
 
@@ -635,7 +1034,7 @@
       '<div class="mode-body"><div class="mode-inner">' +
       '<div class="start-screen">' +
       "<h1>Hazır mısın?</h1>" +
-      "<p>Tüm terimleri tanımlarıyla mümkün olduğunca hızlı eşleştir. Yanlış eşleştirme yapmamaya dikkat et!</p>" +
+      "<p>Tüm terimleri tanımlarıyla mümkün olduğunca hızlı eşleştir. Her yanlış eşleştirme süreye 1 saniye ekler!</p>" +
       (best != null ? '<p>En iyi süren: <b>' + best.toFixed(1) + " sn</b></p>" : "") +
       '<button class="btn primary big" id="match-start">Oyunu başlat</button>' +
       "</div></div></div></div>";
@@ -688,6 +1087,12 @@
           if (matched === pairCount) finishMatch();
         } else {
           busy = true;
+          t0 -= 1000; // Quizlet gibi: yanlış eşleştirme +1 saniye ceza
+          var pop = document.createElement("span");
+          pop.className = "penalty-pop";
+          pop.textContent = "+1 sn";
+          timerEl.appendChild(pop);
+          setTimeout(function () { pop.remove(); }, 700);
           a.classList.remove("selected");
           a.classList.add("error");
           b.classList.add("error");
@@ -802,6 +1207,183 @@
     renderHome(q);
   });
 
+  /* ================= İLERLEME ================= */
+  function renderProgress() {
+    var goodTotal = 0, badTotal = 0;
+    var goodHtml = "", badHtml = "";
+
+    SETS.forEach(function (s) {
+      var good = getGood(s.id), hard = getHard(s.id);
+      var all = s.terms.map(function (_, i) { return i; });
+      var g = all.filter(function (i) { return (good[i] || 0) >= MASTERED_AT; });
+      var b = all.filter(function (i) { return (hard[i] || 0) >= TROUBLE_AT; });
+      goodTotal += g.length;
+      badTotal += b.length;
+
+      if (g.length) {
+        goodHtml += '<div class="prog-set"><a href="#/set/' + s.id + '">' + esc(s.title) + "</a>" +
+          "<span>" + g.length + " kelime</span></div>";
+        goodHtml += g.map(function (i) {
+          var t = s.terms[i];
+          return '<div class="term-row mastered">' +
+            '<div class="t-term">' + esc(t.term) + "</div>" +
+            '<div class="t-def">' + esc(t.def) + "</div>" +
+            '<div class="t-actions"><span class="hit-badge">' + good[i] + " kez üst üste doğru</span></div></div>";
+        }).join("");
+      }
+      if (b.length) {
+        badHtml += '<div class="prog-set"><a href="#/set/' + s.id + '">' + esc(s.title) + "</a>" +
+          '<a class="btn primary" href="#/set/' + s.id + '/ogren-yanlis">Bunları çalış</a></div>';
+        badHtml += b.map(function (i) {
+          var t = s.terms[i];
+          return '<div class="term-row hard">' +
+            '<div class="t-term">' + esc(t.term) + "</div>" +
+            '<div class="t-def">' + esc(t.def) + "</div>" +
+            '<div class="t-actions"><span class="miss-badge">' + hard[i] + " kez yanlış</span></div></div>";
+        }).join("");
+      }
+    });
+
+    var html = '<div class="container"><h1 class="page-title">İlerlemen</h1>';
+    html += '<h2 class="prog-h ok">Kesin öğrendiklerin (' + goodTotal + ")</h2>" +
+      '<p class="prog-desc">En az ' + MASTERED_AT + " kez üst üste doğru cevapladığın kelimeler. Bir yanlış, seriyi sıfırlar.</p>";
+    html += goodTotal ? goodHtml
+      : '<p class="empty-note">Henüz yok — bir kelimeyi ' + MASTERED_AT + " kez üst üste doğru bilince burada görünür.</p>";
+    html += '<h2 class="prog-h no">Sürekli hata yaptıkların (' + badTotal + ")</h2>" +
+      '<p class="prog-desc">En az ' + TROUBLE_AT + " kez yanlış cevapladığın kelimeler.</p>";
+    html += badTotal ? badHtml
+      : '<p class="empty-note">Burası temiz — sürekli hata yaptığın kelime yok. 👏</p>';
+    html += "</div>";
+    setPage(html, { side: "progress" });
+  }
+
+  /* ================= KURS İLERLEMESİ ================= */
+  /* Eğitimler ve ders işaretleri tamamen localStorage'da tutulur;
+     veri dosyası gerekmez, her şey sayfadan eklenir. */
+  var COURSE_LESSONS = 50;
+  /* Sınav Kampı'ndaki eğitimler — ilk açılışta otomatik eklenir,
+     sonrasında sayfadan eklenip çıkarılabilir */
+  var DEFAULT_TRAININGS = [
+    "MELİH HOCA YDS YÖKDİL YKSDİL TEMEL HAZIRLIK VİDEOLARI",
+    "GÖZDE HOCA İLE 200 METİN ÇEVİRİ",
+    "ECE HOCA METİN ÇEVİRİ VİDEOLARI",
+    "BAŞTAN SONA YDS-YÖKDİL-YKSDİL ÖN HAZIRLIK DERSLERİ - ECE HOCA",
+    "2025 GÜZ YÖKDİL KELİME DERSLERİ",
+    "2025 GÜZ YÖKDİL PARAGRAF DERSLERİ",
+    "CANLI DERSLERDEN ÖNCE NASIL ÇALIŞMALIYIM? - ECE HOCA İLE YÖKDİL EĞİTİMİ",
+    "BAŞTAN SONA YDS-YÖKDİL-YKSDİL ÖN HAZIRLIK DERSLERİ - HAKKI HOCA",
+    "ECE HOCA İLE 70 PUAN GARANTİLİ 2026 GÜZ YÖKDİL",
+    "ECE HOCA İLE EN ÖNEMLİ VERB ÇALIŞMASI",
+    "BAŞTAN SONA VOCABULARY",
+    "BAŞTAN SONA GRAMMAR",
+    "BAŞTAN SONA READING",
+    "2026 GÜZ YÖKDİL PARAGRAF SORU ÇÖZÜM DERSLERİ - GÖZDE HOCA",
+    "2026 GÜZ YÖKDİL KELİME SORU ÇÖZÜM DERSLERİ - ECE HOCA"
+  ];
+  function getCourse() {
+    var list = store.get("course", []);
+    // Varsayılan eğitimleri bir kereye mahsus ekle (kullanıcının ekledikleri korunur,
+    // sildiği varsayılanlar bir daha geri gelmez)
+    if (!store.get("course_seeded", false)) {
+      DEFAULT_TRAININGS.forEach(function (name) {
+        var exists = list.some(function (t) { return t.name === name; });
+        if (!exists) list.push({ name: name, done: {} });
+      });
+      store.set("course", list);
+      store.set("course_seeded", true);
+    }
+    return list;
+  }
+  function saveCourse(list) { store.set("course", list); }
+
+  function renderCourse() {
+    var list = getCourse();
+
+    function itemHtml(t, idx) {
+      var doneCount = Object.keys(t.done || {}).length;
+      var pct = Math.round((doneCount / COURSE_LESSONS) * 100);
+      var chips = "";
+      for (var n = 1; n <= COURSE_LESSONS; n++) {
+        chips += '<button class="lesson-chip' + (t.done && t.done[n] ? " done" : "") +
+          '" data-t="' + idx + '" data-l="' + n + '" title="Ders ' + n + '">' + n + "</button>";
+      }
+      return '<details class="course-item">' +
+        "<summary>" +
+        '<div class="ci-head"><div class="ci-name">' + esc(t.name) + "</div>" +
+        '<div class="ci-meta"><span data-count="' + idx + '">' + doneCount + "/" + COURSE_LESSONS + " ders · %" + pct + "</span></div></div>" +
+        '<div class="ci-bar"><div data-bar="' + idx + '" style="width:' + pct + '%"></div></div>' +
+        '<button class="icon-btn small" data-ren="' + idx + '" title="Adını değiştir">' + I.pencil + "</button>" +
+        '<button class="icon-btn small" data-del="' + idx + '" title="Eğitimi sil">' + I.trash + "</button>" +
+        '<span class="ci-caret">⌄</span>' +
+        "</summary>" +
+        '<div class="lesson-grid">' + chips + "</div></details>";
+    }
+
+    var html = '<div class="container"><h1 class="page-title">Kurs ilerlemesi</h1>' +
+      '<p class="prog-desc">Arkadaşınla ilerlediğin kursun eğitimleri. Bir derse tıklayınca yapıldı olarak işaretlenir, tekrar tıklayınca geri alınır — her şey otomatik kaydedilir.</p>';
+    html += list.length ? list.map(itemHtml).join("")
+      : '<p class="empty-note">Henüz eğitim eklemedin. Aşağıdaki butonla ilk eğitimini ekle; altına otomatik ' + COURSE_LESSONS + " ders açılır.</p>";
+    html += '<div class="btn-row" style="justify-content:flex-start;margin-top:1.25rem">' +
+      '<button class="btn primary" id="course-add">+ Eğitim ekle</button></div></div>';
+    setPage(html, { side: "course" });
+
+    $("#course-add").addEventListener("click", function () {
+      var name = prompt("Eğitimin adı ne olsun?");
+      if (!name || !name.trim()) return;
+      list.push({ name: name.trim(), done: {} });
+      saveCourse(list);
+      renderCourse();
+    });
+
+    view.addEventListener("click", function (e) {
+      var chip = e.target.closest(".lesson-chip");
+      if (chip) {
+        var t = list[+chip.dataset.t];
+        var n = chip.dataset.l;
+        t.done = t.done || {};
+        if (t.done[n]) delete t.done[n]; else t.done[n] = true;
+        saveCourse(list);
+        chip.classList.toggle("done", !!t.done[n]);
+        var doneCount = Object.keys(t.done).length;
+        var pct = Math.round((doneCount / COURSE_LESSONS) * 100);
+        $('[data-count="' + chip.dataset.t + '"]').textContent = doneCount + "/" + COURSE_LESSONS + " ders · %" + pct;
+        $('[data-bar="' + chip.dataset.t + '"]').style.width = pct + "%";
+        return;
+      }
+      var ren = e.target.closest("[data-ren]");
+      if (ren) {
+        e.preventDefault(); // summary açılıp kapanmasın
+        var tr = list[+ren.dataset.ren];
+        var newName = prompt("Yeni ad:", tr.name);
+        if (newName && newName.trim()) {
+          tr.name = newName.trim();
+          saveCourse(list);
+          renderCourse();
+        }
+        return;
+      }
+      var del = e.target.closest("[data-del]");
+      if (del) {
+        e.preventDefault();
+        var i = +del.dataset.del;
+        if (confirm('"' + list[i].name + '" eğitimini silmek istediğine emin misin? Ders işaretleri de silinir.')) {
+          list.splice(i, 1);
+          saveCourse(list);
+          renderCourse();
+        }
+      }
+    });
+  }
+
+  /* Sadece yanlış yapılan terimlerle bir modu başlat */
+  function renderHardMode(setId, starter) {
+    var s = getSet(setId);
+    if (!s) { location.hash = "#/"; return; }
+    var idx = hardIndices(s);
+    if (!idx.length) { location.hash = "#/set/" + s.id; return; }
+    starter(s, idx);
+  }
+
   /* ================= YÖNLENDİRİCİ ================= */
   function route() {
     var hash = location.hash.replace(/^#\/?/, "");
@@ -809,6 +1391,8 @@
 
     if (!parts.length) { renderHome(); return; }
     if (parts[0] === "kitaplik") { renderLibrary(); return; }
+    if (parts[0] === "ilerleme") { renderProgress(); return; }
+    if (parts[0] === "kurs") { renderCourse(); return; }
     if (parts[0] === "gramer") { renderGrammar(); return; }
     if (parts[0] === "quiz") { renderQuiz(); return; }
     if (parts[0] === "set" && parts[1]) {
@@ -817,6 +1401,8 @@
       if (mode === "ogren") { renderLearnMode(parts[1]); return; }
       if (mode === "test") { renderTestMode(parts[1]); return; }
       if (mode === "eslestir") { renderMatchMode(parts[1]); return; }
+      if (mode === "kartlar-yanlis") { renderHardMode(parts[1], startCards); return; }
+      if (mode === "ogren-yanlis") { renderHardMode(parts[1], startLearn); return; }
       renderSet(parts[1]);
       return;
     }

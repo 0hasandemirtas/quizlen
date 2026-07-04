@@ -7,10 +7,11 @@
   --text: #282e3e;
   --gray: #586380;
   --gray-light: #939bb4;
-  --bg: #f6f7fb;
+  --bg: #f0f2f8;
   --white: #ffffff;
-  --border: #d9dde8;
-  --border-light: #edeff4;
+  --border: #ccd3e3;
+  --border-light: #e3e7f0;
+  --card-shadow: 0 0.125rem 0.375rem rgba(40, 46, 62, 0.1), 0 0 0 1px var(--border-light);
   --yellow: #ffcd1f;
   --green: #18ae79;
   --green-bg: #eafaf1;
@@ -182,16 +183,17 @@ main {
 
 .set-card {
   background: var(--white);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.1rem 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   min-height: 9rem;
+  box-shadow: 0 0.125rem 0.375rem rgba(40, 46, 62, 0.08);
   transition: box-shadow 0.15s;
 }
-.set-card:hover { box-shadow: inset 0 -0.25rem 0 0 var(--indigo); }
+.set-card:hover { box-shadow: inset 0 -0.25rem 0 0 var(--indigo), 0 0.125rem 0.375rem rgba(40, 46, 62, 0.08); }
 
 .set-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--navy); }
 
@@ -232,16 +234,17 @@ main {
   align-items: center;
   gap: 0.7rem;
   background: var(--white);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.9rem 1.1rem;
   font-weight: 700;
   font-size: 0.95rem;
   color: var(--navy);
+  box-shadow: 0 0.125rem 0.375rem rgba(40, 46, 62, 0.08);
   transition: box-shadow 0.15s;
 }
 .mode-tile svg { width: 1.5rem; height: 1.5rem; color: var(--indigo); flex-shrink: 0; }
-.mode-tile:hover { box-shadow: inset 0 -0.25rem 0 0 var(--indigo); }
+.mode-tile:hover { box-shadow: inset 0 -0.25rem 0 0 var(--indigo), 0 0.125rem 0.375rem rgba(40, 46, 62, 0.08); }
 
 /* ============ FLASH KART ============ */
 .fc-stage { perspective: 1200px; }
@@ -262,8 +265,9 @@ main {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   background: var(--white);
+  border: 1px solid var(--border);
   border-radius: 1rem;
-  box-shadow: var(--shadow);
+  box-shadow: 0 0.5rem 1.5rem rgba(40, 46, 62, 0.18);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -358,10 +362,11 @@ main {
   display: flex;
   align-items: center;
   background: var(--white);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius);
   padding: 0.8rem 1.25rem;
   margin-bottom: 0.5rem;
-  box-shadow: 0 0.0625rem 0.25rem rgba(40, 46, 62, 0.08);
+  box-shadow: 0 0.125rem 0.25rem rgba(40, 46, 62, 0.08);
 }
 .term-row .t-term {
   flex: 0 0 38%;
@@ -411,8 +416,9 @@ body.mode-open main { padding: 0; }
 /* ---- Öğren ---- */
 .learn-card {
   background: var(--white);
+  border: 1px solid var(--border);
   border-radius: 1rem;
-  box-shadow: var(--shadow);
+  box-shadow: 0 0.375rem 1.25rem rgba(40, 46, 62, 0.14);
   padding: 2.5rem;
   flex: 1;
   display: flex;
@@ -465,8 +471,9 @@ body.mode-open main { padding: 0; }
 /* ---- Test ---- */
 .test-q {
   background: var(--white);
+  border: 1px solid var(--border-light);
   border-radius: 1rem;
-  box-shadow: 0 0.0625rem 0.25rem rgba(40, 46, 62, 0.08);
+  box-shadow: 0 0.125rem 0.375rem rgba(40, 46, 62, 0.08);
   padding: 2rem 2.5rem;
   margin-bottom: 1.5rem;
 }
@@ -562,9 +569,9 @@ body.mode-open main { padding: 0; }
 }
 .match-tile {
   background: var(--white);
-  border: 2px solid transparent;
+  border: 2px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 0.0625rem 0.25rem rgba(40, 46, 62, 0.1);
+  box-shadow: 0 0.125rem 0.375rem rgba(40, 46, 62, 0.1);
   padding: 1rem;
   font-size: 0.95rem;
   color: var(--navy);
@@ -678,6 +685,210 @@ body.mode-open main { padding: 0; }
 .empty-note { color: var(--gray); font-weight: 600; text-align: center; padding: 3rem 1rem; }
 
 .page-title { font-size: 1.6rem; font-weight: 700; color: var(--navy); margin-bottom: 1.5rem; }
+
+/* ============ KARTLAR - SIRALAMA ============ */
+.sort-counts {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.9rem;
+  visibility: hidden;
+}
+.count-pill {
+  border-radius: 1.5rem;
+  padding: 0.25rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border: 2px solid;
+}
+.count-pill.learning { color: #d05700; border-color: #ffc38c; background: #fff5eb; }
+.count-pill.know { color: var(--green); border-color: #9be3c9; background: var(--green-bg); }
+
+.icon-btn.arrow.mark-learning { border-color: #ffc38c; color: #d05700; }
+.icon-btn.arrow.mark-learning:hover:not(:disabled) { background: #fff5eb; }
+.icon-btn.arrow.mark-know { border-color: #9be3c9; color: var(--green); }
+.icon-btn.arrow.mark-know:hover:not(:disabled) { background: var(--green-bg); }
+
+.sort-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--gray);
+  cursor: pointer;
+  user-select: none;
+}
+
+.fc-stage.swap-right { animation: swapR 0.3s ease; }
+.fc-stage.swap-left { animation: swapL 0.3s ease; }
+@keyframes swapR {
+  35% { transform: translateX(2.5rem); opacity: 0; }
+  65% { transform: translateX(-2.5rem); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+@keyframes swapL {
+  35% { transform: translateX(-2.5rem); opacity: 0; }
+  65% { transform: translateX(2.5rem); opacity: 0; }
+  100% { transform: none; opacity: 1; }
+}
+
+/* ============ ÖĞREN - YAZILI SORU ============ */
+.learn-form { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.learn-form input {
+  flex: 1 1 12rem;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--border-light);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 1rem;
+  background: var(--bg);
+  outline: none;
+}
+.learn-form input:focus { border-color: var(--navy); background: var(--white); }
+
+.ans-label { font-size: 0.8rem; font-weight: 700; color: var(--gray); margin-bottom: 0.35rem; }
+.ans-box {
+  border: 2px solid;
+  border-radius: var(--radius);
+  padding: 0.85rem 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+.ans-box.ok { border-color: var(--green); background: var(--green-bg); }
+.ans-box.no { border-color: var(--red); background: var(--red-bg); }
+
+.stat-pill.mid .num { color: #d05700; }
+
+/* ============ YANLIŞ HAFIZASI ============ */
+.hard-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: #fff5eb;
+  border: 1px solid #ffc38c;
+  border-radius: var(--radius);
+  padding: 1.1rem 1.4rem;
+  margin-top: 1.5rem;
+}
+.hard-banner h3 { color: #a34400; font-size: 1.02rem; margin-bottom: 0.15rem; }
+.hard-banner p { color: #a34400; font-size: 0.88rem; font-weight: 600; }
+.hb-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.hb-actions .btn { padding: 0.6rem 1.2rem; font-size: 0.9rem; }
+.hb-actions .btn.ghost { background: var(--white); }
+
+.term-row.hard { border-left: 0.25rem solid #ff983a; }
+.miss-badge {
+  align-self: center;
+  background: #fff5eb;
+  border: 1px solid #ffc38c;
+  color: #a34400;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 1rem;
+  padding: 0.15rem 0.6rem;
+  white-space: nowrap;
+  margin-right: 0.4rem;
+}
+
+/* ============ İLERLEME ============ */
+.hit-badge {
+  align-self: center;
+  background: var(--green-bg);
+  border: 1px solid #9be3c9;
+  color: #0d7d56;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 1rem;
+  padding: 0.15rem 0.6rem;
+  white-space: nowrap;
+  margin-right: 0.4rem;
+}
+.term-row.mastered { border-left: 0.25rem solid var(--green); }
+
+.prog-h { font-size: 1.2rem; margin: 2.25rem 0 0.25rem; }
+.prog-h:first-of-type { margin-top: 0.5rem; }
+.prog-h.ok { color: #0d7d56; }
+.prog-h.no { color: #a34400; }
+.prog-desc { color: var(--gray); font-weight: 600; font-size: 0.9rem; margin-bottom: 1rem; }
+
+.prog-set {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.4rem 0 0.6rem;
+}
+.prog-set > a:first-child { font-weight: 700; color: var(--navy); font-size: 1.02rem; }
+.prog-set > a:first-child:hover { text-decoration: underline; }
+.prog-set span { color: var(--gray); font-weight: 600; font-size: 0.85rem; }
+.prog-set .btn { padding: 0.5rem 1.1rem; font-size: 0.85rem; }
+
+/* ============ EŞLEŞTİR - CEZA ============ */
+.match-timer { position: relative; }
+.penalty-pop {
+  position: absolute;
+  margin-left: 0.5rem;
+  color: var(--red);
+  animation: penalty-rise 0.7s ease forwards;
+}
+@keyframes penalty-rise { to { transform: translateY(-1rem); opacity: 0; } }
+
+/* ============ KURS İLERLEMESİ ============ */
+.course-item {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 0.125rem 0.375rem rgba(40, 46, 62, 0.08);
+  margin-bottom: 0.9rem;
+}
+.course-item summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.4rem;
+  cursor: pointer;
+}
+.course-item summary::-webkit-details-marker { display: none; }
+.ci-head { flex: 0 1 16rem; min-width: 9rem; }
+.ci-name { font-weight: 700; color: var(--navy); font-size: 1.05rem; overflow-wrap: anywhere; }
+.ci-meta { color: var(--gray); font-weight: 600; font-size: 0.85rem; margin-top: 0.15rem; }
+.ci-bar {
+  flex: 1;
+  min-width: 5rem;
+  height: 0.5rem;
+  background: var(--border-light);
+  border-radius: 1rem;
+  overflow: hidden;
+}
+.ci-bar > div { height: 100%; background: var(--green); border-radius: 1rem; transition: width 0.2s; }
+.ci-caret { color: var(--gray); font-size: 1.2rem; transition: transform 0.2s; }
+.course-item[open] .ci-caret { transform: rotate(180deg); }
+
+.lesson-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.2rem, 1fr));
+  gap: 0.5rem;
+  padding: 0 1.4rem 1.4rem;
+}
+.lesson-chip {
+  border: 2px solid var(--border-light);
+  background: var(--white);
+  border-radius: 0.5rem;
+  padding: 0.55rem 0;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--gray);
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+.lesson-chip:hover { border-color: var(--indigo); color: var(--indigo); }
+.lesson-chip.done { background: var(--green); border-color: var(--green); color: #fff; }
+.lesson-chip.done::after { content: " ✓"; }
 
 /* ============ MOBİL ============ */
 @media (max-width: 900px) {
