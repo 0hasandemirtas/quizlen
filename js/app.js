@@ -734,6 +734,17 @@
 
     function startRound() {
       queue = order.filter(function (i) { return stage[i] < 2; }).slice(0, LEARN_ROUND);
+      // Aralıklı tekrar: bitirilen ama henüz kesin öğrenilmemiş (3 kez üst üste
+      // doğru bilinmemiş) kelimelerden en fazla 2'si araya serpiştirilir
+      if (queue.length) {
+        var good = getGood(s.id);
+        var review = shuffle(order.filter(function (i) {
+          return stage[i] === 2 && (good[i] || 0) < MASTERED_AT;
+        })).slice(0, 2);
+        review.forEach(function (i) {
+          queue.splice(1 + Math.floor(Math.random() * queue.length), 0, i);
+        });
+      }
       roundNum++;
       persistState();
       ask();
@@ -826,9 +837,10 @@
 
     function askWritten(ti) {
       var t = s.terms[ti];
+      var isReview = stage[ti] === 2;
       var inner = $("#learn-inner");
       inner.innerHTML = '<div class="learn-card">' +
-        '<div class="q-label">Tanım</div>' +
+        '<div class="q-label">' + (isReview ? "Tekrar · Tanım" : "Tanım") + "</div>" +
         '<div class="q-word">' + esc(t.def) + "</div>" +
         '<div id="learn-feedback"></div>' +
         '<div class="q-prompt">Cevabını yaz (' + esc(s.langs[0]) + ")</div>" +
@@ -862,6 +874,7 @@
           wrongCount++;
           addMiss(s.id, ti);
           resetHit(s.id, ti);
+          if (isReview) stage[ti] = 1; // tekrarında yanıldı: yeniden yazması gerekecek
           queue.push(queue.shift());
           persistState();
           $("#learn-form").style.display = "none";
