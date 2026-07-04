@@ -711,7 +711,9 @@
         '<div class="q-prompt">Doğru tanımı seç</div>' +
         '<div class="opt-grid">' + opts.map(function (oi, n) {
           return '<button class="opt-btn" data-opt="' + oi + '"><span class="opt-num">' + (n + 1) + "</span>" + esc(s.terms[oi].def) + "</button>";
-        }).join("") + "</div></div>";
+        }).join("") + "</div>" +
+        '<div class="btn-row" style="justify-content:flex-start;margin-top:1rem">' +
+        '<button class="btn ghost" id="mc-skip">Bilmiyorum</button></div></div>';
 
       var answered = false;
       function choose(btn) {
@@ -741,6 +743,20 @@
       }
       $$(".opt-btn", inner).forEach(function (b) {
         b.addEventListener("click", function () { choose(b); });
+      });
+      $("#mc-skip").addEventListener("click", function () {
+        if (answered) return;
+        answered = true;
+        this.disabled = true;
+        $$(".opt-btn", inner).forEach(function (b) { b.disabled = true; });
+        wrongCount++;
+        addMiss(s.id, ti);
+        resetHit(s.id, ti);
+        $$('.opt-btn[data-opt="' + ti + '"]', inner)[0].classList.add("correct");
+        $("#learn-feedback").innerHTML = '<div class="feedback-msg no">Sorun değil — doğrusu işaretlendi, tur içinde tekrar soracağım.</div>';
+        queue.push(queue.shift());
+        updateProgress();
+        setTimeout(ask, 2200);
       });
       keyHandler = function (e) {
         var n = parseInt(e.key, 10);
