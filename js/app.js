@@ -20,13 +20,29 @@
     }
     return a;
   }
+  /* Profiller: "hasan" eski (prefix'siz) anahtarları kullanmaya devam eder,
+     böylece mevcut ilerleme kaybolmaz. Diğer profillerin anahtarları önekli. */
+  var PROFILES = { hasan: "Hasan", zehra: "Zehra" };
+  var GLOBAL_KEYS = { theme: 1 };
+  function activeProfile() {
+    var p = null;
+    try { p = localStorage.getItem("qz_profile"); } catch (e) {}
+    return PROFILES[p] ? p : "hasan";
+  }
+  function setActiveProfile(p) {
+    try { localStorage.setItem("qz_profile", p); } catch (e) {}
+  }
   var store = {
     get: function (k, d) {
-      try { var v = JSON.parse(localStorage.getItem("qz_" + k)); return v == null ? d : v; }
+      var profile = activeProfile();
+      var key = (GLOBAL_KEYS[k] || profile === "hasan") ? k : profile + "_" + k;
+      try { var v = JSON.parse(localStorage.getItem("qz_" + key)); return v == null ? d : v; }
       catch (e) { return d; }
     },
     set: function (k, v) {
-      try { localStorage.setItem("qz_" + k, JSON.stringify(v)); } catch (e) {}
+      var profile = activeProfile();
+      var key = (GLOBAL_KEYS[k] || profile === "hasan") ? k : profile + "_" + k;
+      try { localStorage.setItem("qz_" + key, JSON.stringify(v)); } catch (e) {}
     }
   };
   /* Sesli okuma: önce tarayıcının kendi İngilizce sesi denenir;
@@ -1526,6 +1542,19 @@
     document.documentElement.setAttribute("data-theme", next);
     store.set("theme", next);
   });
+
+  function renderAvatar() {
+    var p = activeProfile();
+    var el = $("#user-avatar");
+    el.textContent = PROFILES[p].charAt(0);
+    el.title = PROFILES[p] + " — değiştirmek için tıkla";
+  }
+  $("#user-avatar").addEventListener("click", function () {
+    setActiveProfile(activeProfile() === "hasan" ? "zehra" : "hasan");
+    renderAvatar();
+    route();
+  });
+  renderAvatar();
 
   window.addEventListener("hashchange", route);
   route();
