@@ -758,6 +758,43 @@ body.mode-open main { padding: 0; }
 .grammar-item .g-body h4 + p.g-intro { margin-top: -0.25rem; }
 .g-intro { color: var(--gray); font-size: 0.92rem; }
 
+.grammar-pinned {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: 0 0.0625rem 0.25rem rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--indigo);
+  padding: 1.1rem 1.25rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.grammar-pinned h2 { color: var(--navy); font-size: 1rem; margin: 0 0 0.5rem; }
+.grammar-pinned .g-body { color: var(--text); line-height: 1.6; }
+
+.tg { table-layout: fixed; width: 100%; font-size: 0.76rem; border: 2px solid var(--indigo); }
+.tg th, .tg td { border: 1px solid var(--border-light); padding: 0.4rem 0.5rem; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+.tg .tg-h { background: var(--indigo-bg); color: var(--indigo); text-align: center; font-weight: 700; }
+.tg tr.tg-spacer td, .tg tr.tg-thick td { border: none; padding: 0.25rem 0; }
+.tg tr.tg-thick td { border-top: 2px solid var(--indigo); }
+.tg-title { font-weight: 700; color: var(--navy); margin-bottom: 0.25rem; }
+.tg-title small { font-weight: 400; color: var(--gray); }
+.tg .g-active, .tg .g-passive, .tg-line { display: block; margin: 0.15rem 0; }
+.tg .g-active code, .tg .g-passive code, .tg-line code { font-weight: 600; }
+.tg-tr { color: var(--gray); font-style: italic; font-size: 0.92em; }
+.tg-note { margin-top: 0.4rem; font-size: 0.85em; color: var(--text); }
+@media (max-width: 640px) {
+  .tg { font-size: 0.66rem; }
+  .tg th, .tg td { padding: 0.3rem 0.35rem; }
+}
+
+.tk { table-layout: fixed; width: 100%; font-size: 0.78rem; border: 2px solid var(--indigo); border-collapse: collapse; }
+.tk th, .tk td { border: 1px solid var(--border-light); padding: 0.45rem 0.5rem; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word; }
+.tk th { background: var(--indigo-bg); color: var(--indigo); text-align: center; font-weight: 700; }
+.tk-label { text-align: center; font-weight: 700; color: var(--navy); background: var(--bg); }
+.tk-bottom { border-top: none; margin-top: -1px; }
+@media (max-width: 640px) {
+  .tk { font-size: 0.66rem; }
+  .tk th, .tk td { padding: 0.3rem 0.35rem; }
+}
+
 .empty-note { color: var(--gray); font-weight: 600; text-align: center; padding: 3rem 1rem; }
 
 .page-title { font-size: 1.6rem; font-weight: 700; color: var(--navy); margin-bottom: 1.5rem; }

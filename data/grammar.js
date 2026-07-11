@@ -4,6 +4,151 @@
 window.DATA = window.DATA || {};
 window.DATA.grammar = [
   {
+    title: "Tüm Zamanlar & Modallar — Tek Tabloda",
+    pinned: true,
+    body: `
+      <div class="g-table-wrap"><table class="tg">
+        <tr><th class="tg-h">PRESENT</th><th class="tg-h">PAST</th><th class="tg-h">FUTURE</th></tr>
+        <tr>
+          <td><div class="tg-title">Simple Present = NET <small>(-er / -ar)</small></div>
+            <div class="g-active">Active = <code>V1/V5</code> <span class="tg-tr">(yapar)</span></div>
+            <div class="g-passive">Passive = <code>am/is/are V3</code> <span class="tg-tr">(yapılır)</span></div>
+          </td>
+          <td><div class="tg-title">Simple Past = NET <small>(-dı / -di)</small></div>
+            <div class="g-active">Active = <code>V2</code> <span class="tg-tr">(yaptı)</span></div>
+            <div class="g-passive">Passive = <code>was/were V3</code> <span class="tg-tr">(yapıldı)</span></div>
+          </td>
+          <td><div class="tg-title">Simple Future = NET <small>(-ecek / -acak)</small></div>
+            <div class="g-active">Active = <code>will V1</code> <span class="tg-tr">(yapacak)</span></div>
+            <div class="g-passive">Passive = <code>will be V3</code> <span class="tg-tr">(yapılacak)</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td><div class="tg-title">Present Cont. = NET <small>(-yor)</small></div>
+            <div class="g-active">Active = <code>am/is/are Ving</code> <span class="tg-tr">(yapıyor)</span></div>
+            <div class="g-passive">Passive = <code>am/is/are being V3</code> <span class="tg-tr">(yapılıyor)</span></div>
+          </td>
+          <td><div class="tg-title">Past Cont. = NET <small>(-yordu)</small></div>
+            <div class="g-active">Active = <code>was/were Ving</code> <span class="tg-tr">(yapıyordu)</span></div>
+            <div class="g-passive">Passive = <code>was/were being V3</code> <span class="tg-tr">(yapılıyordu)</span></div>
+          </td>
+          <td><div class="tg-title">Future Cont. = NET <small>(-yor olacak)</small></div>
+            <div class="g-active">Active = <code>will be Ving</code> <span class="tg-tr">(yapıyor olacak)</span></div>
+            <div class="g-passive">Passive = <code>will be being V3</code> <span class="tg-tr">(yapılıyor olacak)</span></div>
+          </td>
+        </tr>
+        <tr class="tg-spacer"><td colspan="3"></td></tr>
+        <tr>
+          <td><div class="tg-title">Present Perfect = SÜREÇ <small>(-dı / -di)</small></div>
+            <div class="g-active">Active = <code>have V3</code> <span class="tg-tr">(yaptı)</span></div>
+            <div class="g-passive">Passive = <code>have been V3</code> <span class="tg-tr">(yapıldı)</span></div>
+          </td>
+          <td><div class="tg-title">Past Perfect = SÜREÇ <small>(-dı/-di –mıştı/-mişti)</small></div>
+            <div class="g-active">Active = <code>had V3</code> <span class="tg-tr">(yaptı / yapmıştı)</span></div>
+            <div class="g-passive">Passive = <code>had been V3</code> <span class="tg-tr">(yapıldı / yapılmıştı)</span></div>
+          </td>
+          <td><div class="tg-title">Future Perfect = SÜREÇ <small>(-mış olacak)</small></div>
+            <div class="g-active">Active = <code>will have V3</code> <span class="tg-tr">(yapmış olacak)</span></div>
+            <div class="g-passive">Passive = <code>will have been V3</code> <span class="tg-tr">(yapılmış olacak)</span></div>
+          </td>
+        </tr>
+        <tr>
+          <td><div class="tg-title">Present Perfect Cont. = SÜREÇ <small>(-yor)</small></div>
+            <div class="g-active">Active = <code>have been Ving</code> <span class="tg-tr">(yapıyor)</span></div>
+            <div class="g-passive">Passive = <code>have been being V3</code> <span class="tg-tr">(yapılıyor)</span></div>
+          </td>
+          <td><div class="tg-title">Past Perfect Cont. = SÜREÇ <small>(-yordu)</small></div>
+            <div class="g-active">Active = <code>had been Ving</code> <span class="tg-tr">(yapıyordu)</span></div>
+            <div class="g-passive">Passive = <code>had been being V3</code> <span class="tg-tr">(yapılıyordu)</span></div>
+          </td>
+          <td><div class="tg-title">Future Perfect Cont. = SÜREÇ <small>(-yor olacak)</small></div>
+            <div class="g-active">Active = <code>will have been Ving</code> <span class="tg-tr">(yapıyor olacak)</span></div>
+            <div class="g-passive">Passive = <code>will have been being V3</code> <span class="tg-tr">(yapılıyor olacak)</span></div>
+          </td>
+        </tr>
+        <tr class="tg-thick"><td colspan="3"></td></tr>
+        <tr>
+          <td><div class="tg-title">MODAL ÇEKİMLERİ</div>
+            <div class="g-active">Active = <code>can V1</code> <span class="tg-tr">(yapabilir)</span></div>
+            <div class="g-passive">Passive = <code>can be V3</code> <span class="tg-tr">(yapılabilir)</span></div>
+            <div class="g-active">Active = <code>could V1</code> <span class="tg-tr">(yapabilirdi)</span></div>
+            <div class="g-passive">Passive = <code>could be V3</code> <span class="tg-tr">(yapılabilirdi)</span></div>
+            <div class="g-active">Active = <code>can be Ving</code> <span class="tg-tr">(yapıyor olabilir)</span></div>
+            <div class="g-active">Active = <code>could have V3</code> <span class="tg-tr">(yapabilirdi ama yapmadı)</span></div>
+            <div class="g-passive">Passive = <code>could have been V3</code> <span class="tg-tr">(yapılabilirdi ama yapılmadı)</span></div>
+          </td>
+          <td><div class="tg-title">PRESENT MODALS</div>
+            <div class="tg-line"><code>can V1</code> <span class="tg-tr">(ihtimal/yetenek)</span></div>
+            <div class="tg-line"><code>may V1</code> <span class="tg-tr">(ihtimal)</span></div>
+            <div class="tg-line"><code>must V1</code> <span class="tg-tr">(zorunluluk/ihtimal)</span></div>
+            <div class="tg-line"><code>should V1</code> <span class="tg-tr">(tavsiye)</span></div>
+            <div class="tg-line"><code>ought to V1</code> <span class="tg-tr">(tavsiye)</span></div>
+            <div class="tg-line"><code>had better V1</code> <span class="tg-tr">(tavsiye)</span></div>
+            <div class="tg-line"><code>need to V1</code> <span class="tg-tr">(gereklilik)</span></div>
+            <div class="tg-title" style="margin-top:0.5rem">PAST MODALS</div>
+            <div class="tg-line"><code>could have V3</code></div>
+            <div class="tg-line"><code>may have V3</code></div>
+            <div class="tg-line"><code>might have V3</code></div>
+            <div class="tg-line"><code>must have V3</code> <span class="tg-tr">(%99)</span></div>
+            <div class="tg-title" style="margin-top:0.5rem">HEM PRESENT HEM PAST</div>
+            <div class="tg-line"><code>could have V3</code> <span class="tg-tr">(ihtimal/yetenek)</span></div>
+            <div class="tg-line"><code>might have V3</code> <span class="tg-tr">(ihtimal)</span></div>
+          </td>
+          <td><div class="tg-title">SONUÇ VEREN MODALLAR</div>
+            <div class="tg-line"><code>could have V3</code></div>
+            <div class="tg-line"><code>should have V3</code></div>
+            <div class="tg-line"><code>ought to have V3</code></div>
+            <div class="tg-line"><code>had better have V3</code></div>
+            <div class="tg-line"><code>need have V3</code></div>
+            <div class="tg-note"><strong>NOT:</strong> <code>be to</code> = have to <span class="tg-tr">(zorunluluk)</span><br><code>be off</code> = have <span class="tg-tr">(sahiplik)</span></div>
+          </td>
+        </tr>
+      </table></div>
+    `
+  },
+  {
+    title: "Zaman Belirteçleri — Tablo (Tense Keywords)",
+    body: `
+      <div class="g-table-wrap"><table class="tk">
+        <tr><th colspan="6">TENSE KEYWORDS (TIME EXP.)</th></tr>
+        <tr>
+          <td>date back<br>trace back<br>stretch back<br>go back</td>
+          <td>Bu fiiller her zaman <strong>Simple Present</strong> ile kullanılır</td>
+          <td rowspan="3">FİDOW<br>lately<br>recently<br>up to now<br>until now<br>so far<br>since + past<br><br>throughout history<br>recorded history<br>human history<br>for + zaman<br>over + zaman<br>all + zaman</td>
+          <td rowspan="3" class="tk-label">SÜREÇ ANAHTAR KELİMELER</td>
+          <td rowspan="3">ölü insan<br>in 1980s<br>during + past<br>until recently<br><br>last year / century / week<br>… ago …<br>in the past<br>ancient<br>previous<br>early / earlier / earliest<br>the first</td>
+          <td rowspan="3" class="tk-label">NET PAST ANAHTAR KELİMELER</td>
+        </tr>
+        <tr>
+          <td>now<br>right now<br>at present<br>at the moment<br>thesedays<br>nowadays</td>
+          <td><em>Present Cont.</em> keywords</td>
+        </tr>
+        <tr>
+          <td>increasingly<br>day by day<br>more and more<br>step by step<br>gradually<br>at a rate<br>at an accelerating rate</td>
+          <td>Git gide artan azalan ifadelerde <em>Present Cont.</em> çağrıştırır.</td>
+        </tr>
+        <tr>
+          <td colspan="2">Gelecek zaman anlamlı cümlelerde öncelik <strong>will</strong>'dir. will yoksa 2. öncelik <strong>Present Cont.</strong> olur.</td>
+          <td colspan="2"><strong>Perfect Tense</strong>'ler ile <strong>Perfect Cont. Tense</strong>'ler arasında ayrım yapmamız gerekirse Perfect Cont. için keywords ararız, keywords yoksa önceliğimiz Perfect olan olur.</td>
+          <td>tomorrow<br>soon<br>in 2050<br>in 5 months<br>within 5 months<br>the following<br>the next<br>from now on<br>following + zaman</td>
+          <td class="tk-label">FUTURE TENSE'LER ANAHTAR KELİMELERİ</td>
+        </tr>
+      </table>
+      <table class="tk tk-bottom">
+        <tr>
+          <td>before<br>until<br>by the time<br>prior to</td>
+          <td><code>V2</code></td>
+          <td><code>had V3</code></td>
+          <td>after</td>
+          <td><code>had V3</code></td>
+          <td><code>V2</code></td>
+          <td>by + past<br>as of + past</td>
+          <td>öncelik <code>had V3</code><br>yoksa <code>V2</code></td>
+        </tr>
+      </table></div>
+    `
+  },
+  {
     title: "Present Simple (Geniş Zaman)",
     body: `
       <p>Alışkanlıkları, genel gerçekleri ve rutinleri anlatmak için kullanılır.</p>

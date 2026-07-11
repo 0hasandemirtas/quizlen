@@ -1233,11 +1233,17 @@
   /* ================= GRAMER ================= */
   function renderGrammar() {
     var g = D.grammar || [];
+    var pinned = g.filter(function (item) { return item.pinned; });
+    var rest = g.filter(function (item) { return !item.pinned; });
     var html = '<div class="container"><h1 class="page-title">Gramer notları</h1>';
-    html += g.length ? g.map(function (item) {
+    html += pinned.map(function (item) {
+      return '<div class="grammar-pinned"><h2>' + esc(item.title) + "</h2>" +
+        '<div class="g-body">' + item.body + "</div></div>";
+    }).join("");
+    html += rest.length ? rest.map(function (item) {
       return '<details class="grammar-item"><summary>' + esc(item.title) + "</summary>" +
         '<div class="g-body">' + item.body + "</div></details>";
-    }).join("") : '<p class="empty-note">Henüz gramer notu yok.</p>';
+    }).join("") : (pinned.length ? "" : '<p class="empty-note">Henüz gramer notu yok.</p>');
     html += "</div>";
     setPage(html, { side: "grammar" });
   }
