@@ -76,6 +76,9 @@ window.DATA.grammar = [
             <div class="g-active">Active = <code>can be Ving</code> <span class="tg-tr">(yapıyor olabilir)</span></div>
             <div class="g-active">Active = <code>could have V3</code> <span class="tg-tr">(yapabilirdi ama yapmadı)</span></div>
             <div class="g-passive">Passive = <code>could have been V3</code> <span class="tg-tr">(yapılabilirdi ama yapılmadı)</span></div>
+            <div class="g-active">Active = <code>would V1</code> <span class="tg-tr">(yapardı — unreal/reported/alışkanlık)</span></div>
+            <div class="g-active">Active = <code>would be Ving</code> <span class="tg-tr">(yapıyor olurdu)</span></div>
+            <div class="g-active">Active = <code>would have V3</code> <span class="tg-tr">(yapardı ama yapmadı / yapmış olacağını)</span></div>
           </td>
           <td><div class="tg-title">PRESENT MODALS</div>
             <div class="tg-line"><code>can V1</code> <span class="tg-tr">(ihtimal/yetenek)</span></div>
@@ -85,6 +88,7 @@ window.DATA.grammar = [
             <div class="tg-line"><code>ought to V1</code> <span class="tg-tr">(tavsiye)</span></div>
             <div class="tg-line"><code>had better V1</code> <span class="tg-tr">(tavsiye)</span></div>
             <div class="tg-line"><code>need to V1</code> <span class="tg-tr">(gereklilik)</span></div>
+            <div class="tg-line"><code>would V1</code> <span class="tg-tr">(unreal şart / reported speech / geçmiş alışkanlık)</span></div>
             <div class="tg-title" style="margin-top:0.5rem">PAST MODALS</div>
             <div class="tg-line"><code>could have V3</code></div>
             <div class="tg-line"><code>may have V3</code></div>
@@ -100,6 +104,7 @@ window.DATA.grammar = [
             <div class="tg-line"><code>ought to have V3</code></div>
             <div class="tg-line"><code>had better have V3</code></div>
             <div class="tg-line"><code>need have V3</code></div>
+            <div class="tg-line"><code>would have V3</code></div>
             <div class="tg-note"><strong>NOT:</strong> <code>be to</code> = have to <span class="tg-tr">(zorunluluk)</span><br><code>be off</code> = have <span class="tg-tr">(sahiplik)</span></div>
           </td>
         </tr>
@@ -296,9 +301,100 @@ window.DATA.grammar = [
         <li><code>could have</code> + V3 <span class="g-ex">If I had studied, I could have passed. — Çalışsaydım geçebilirdim.</span></li>
         <li><code>should have</code> + V3 — yapmalıydın ama yapmadın <span class="g-ex">You should have told me. — Bana söylemeliydin.</span></li>
         <li><code>ought to have</code> + V3 <span class="g-ex">You ought to have called. — Aramalıydın.</span></li>
+        <li><code>had better have</code> + V3 — yapılmalıydı, pişmanlık/uyarı <span class="g-ex">She had better have prepared her presentation carefully, or she might fail. — Sunumunu dikkatle hazırlamış olsaydı iyi olurdu.</span></li>
         <li><code>needn't have</code> + V3 — gereksiz yere yapılmış <span class="g-ex">You needn't have worried. — Endişelenmene gerek yoktu.</span></li>
+        <li><code>would have</code> + V3 — yapardı ama yapmadı <span class="g-ex">If I had known, I would have called. — Bilseydim arardım.</span></li>
       </ul>
-      <div class="g-note"><strong>Notundan iki madde okunaklı değildi, kontrol edelim:</strong> "had better have V3" standart bir kalıp değil ("had better" normalde sadece + V1 alır) ve "need have V3" muhtemelen "needn't have V3" olmalı (yukarıya öyle ekledim). Ayrıca ilk notundaki "be off = have (sahiplik)" satırı da anlaşılır değildi — <code>be to = have to</code> (zorunluluk) kısmını kullanıma ekledim, ikincisini sen netleştirince eklerim.</div>
+      <div class="g-note"><strong>be of</strong> = sahip olmak/-e sahip <span class="g-ex">Healthcare is of importance. — Sağlık hizmeti önemlidir.</span> — <strong>be to</strong> = have to (zorunluluk, ayrıca "Be To + V1" konusuna bak).</div>
+    `
+  },
+  {
+    title: "Modal Notu (Ece Hoca) — Can/Could, May/Might, Must, Need, Would, Have to, Be able to, Be to",
+    body: `
+      <p class="g-intro">Ece Hoca'nın ders notlarından — her modalın tüm anlamları ve örnek cümleler.</p>
+
+      <h4>CAN / COULD</h4>
+      <ul>
+        <li><code>can</code> + V1 — ihtimal/yetenek (present) <span class="g-ex">Skilled researchers can detect early signs of cancer with advanced imaging techniques. — Yetkin araştırmacılar gelişmiş görüntüleme teknikleriyle kanserin erken belirtilerini tespit edebilir.</span></li>
+        <li><code>can be</code> + V-ing — şu anda oluyor olabilir <span class="g-ex">The global economy can be facing serious challenges due to political instability. — Küresel ekonomi, siyasi istikrarsızlık nedeniyle ciddi sorunlarla karşı karşıya oluyor olabilir.</span></li>
+        <li><code>cannot</code> + V1 — imkânsızlık/yeteneksizlik/yasaklama <span class="g-ex">Without proper equipment, archaeologists cannot excavate fragile artifacts safely. — Uygun ekipman olmadan arkeologlar hassas eserleri güvenli bir şekilde kazamazlar.</span></li>
+        <li><code>could have</code> + V3 — iki farklı anlam: (1) olabilirdi ama olmadı <span class="g-ex">With more funding, scientists could have developed a vaccine earlier. — Daha fazla finansmanla bilim insanları aşıyı daha erken geliştirebilirdi (ama geliştirmedi).</span> (2) geçmişte -mış olabilir <span class="g-ex">The sudden collapse of the bridge could have resulted from structural weaknesses. — Köprünün ani çöküşü yapısal zayıflıklardan kaynaklanmış olabilir.</span></li>
+        <li><code>couldn't have</code> + V3 — isteseydi de yapamazdı <span class="g-ex">Even with the best technology, engineers couldn't have prevented the earthquake. — En iyi teknolojiyle bile mühendisler depremi önleyemezdi (isteseydi de).</span></li>
+      </ul>
+      <div class="g-note"><strong>could + V1'in üç anlamı:</strong> Past Ability — geçmişte genel yetenek <span class="g-ex">Before the discovery of antibiotics, doctors could treat only a limited number of infections. — Doktorlar sadece sınırlı sayıda enfeksiyonu tedavi edebiliyordu.</span>; Past Possibility — geçmişte ihtimal <span class="g-ex">The sudden decline in population could result from widespread famine in the 19th century. — Nüfustaki ani düşüş kıtlıktan kaynaklanmış olabilirdi.</span>; Present Possibility — şimdiki ihtimal <span class="g-ex">The recent fluctuations in the stock market could indicate a global economic crisis. — Borsadaki son dalgalanmalar bir ekonomik kriz işaret ediyor olabilir.</span></div>
+
+      <h4>MAY / MIGHT — olasılık/ihtimal</h4>
+      <ul>
+        <li><code>may</code> + V1 — olasılık <span class="g-ex">Climate change may cause more frequent natural disasters in the future. — İklim değişikliği gelecekte daha sık doğal felaketlere neden olabilir.</span></li>
+        <li><code>may be</code> + V-ing — şu anda oluyor olabilir <span class="g-ex">The patient may be experiencing side effects of the new medication. — Hasta, yeni ilacın yan etkilerini yaşıyor olabilir.</span></li>
+        <li><code>may have</code> + V3 — geçmişte olmuş olabilir <span class="g-ex">The decline in the ancient civilization may have resulted from prolonged drought. — Antik uygarlığın çöküşü uzun süreli kuraklıktan kaynaklanmış olabilir.</span></li>
+        <li><code>might</code> + V1 — olasılık ("-ebilir", genelde şimdi/gelecek) <span class="g-ex">Regular exercise might reduce the risk of cardiovascular diseases. — Düzenli egzersiz kardiyovasküler hastalık riskini azaltabilir.</span></li>
+        <li><code>might have</code> + V3 — geçmişte olmuş olabilir <span class="g-ex">The unexpected increase in temperature might have caused the glacier to melt faster. — Sıcaklıktaki beklenmedik artış, buzulların daha hızlı erimesine neden olmuş olabilir.</span></li>
+      </ul>
+      <div class="g-note"><strong>Dikkat:</strong> <code>might + V1</code> normalde şimdi/gelecek ihtimali verir, ama reported speech'te (dolaylı anlatım) ya da geçmişe gönderme yapan zaman zarflarıyla geçmiş ihtimal anlamı da taşıyabilir <span class="g-ex">Historians claimed that the sudden collapse of the empire might result from internal conflicts. — Tarihçiler, imparatorluğun çöküşünün iç çatışmalardan kaynaklanmış olabileceğini iddia ettiler.</span></div>
+
+      <h4>SHOULD / OUGHT TO / HAD BETTER</h4>
+      <ul>
+        <li><code>should</code> + V1 — tavsiye/beklenen durum (present/future) <span class="g-ex">Students should review their notes before the exam. — Öğrenciler sınavdan önce notlarını gözden geçirmelidir.</span></li>
+        <li><code>should have</code> + V3 — yapılmalıydı ama yapılmadı <span class="g-ex">The government should have implemented stricter regulations to prevent the crisis. — Hükümet krizi önlemek için daha sıkı düzenlemeleri uygulamalıydı.</span></li>
+        <li><code>shouldn't have</code> + V3 — yapmamalıydı ama yaptı <span class="g-ex">The company shouldn't have ignored the early warning signs of the financial crisis. — Şirket, finansal krizin erken uyarı işaretlerini göz ardı etmemeliydi (ama etti).</span></li>
+        <li><code>ought to</code> + V1 / <code>ought to have</code> + V3 — should ile eşanlamlı <span class="g-ex">The company ought to have informed its employees about the policy change. — Şirket, politika değişikliğini çalışanlarına bildirmeliydi (ama bildirmedi).</span></li>
+        <li><code>had better</code> + V1 — tavsiye (uyarı niteliğinde) <span class="g-ex">You had better submit your assignment before the deadline. — Ödevini son teslim tarihinden önce teslim etsen iyi olur.</span></li>
+      </ul>
+
+      <h4>MUST</h4>
+      <ul>
+        <li><code>must</code> + V1 — zorunluluk/gereklilik <span class="g-ex">Students must submit their assignments on time. / Students must not cheat during the exam. — Öğrenciler ödevlerini zamanında teslim etmelidir. / Öğrenciler sınav sırasında kopya çekmemelidir.</span></li>
+        <li><code>must be</code> + V-ing — şu anda yüksek olasılık/zorunluluk <span class="g-ex">The engineers must be working on the project now. — Mühendisler şu anda projede çalışıyor olmalılar.</span></li>
+        <li><code>must have</code> + V3 — geçmişte yüksek olasılık (%99) <span class="g-ex">The researchers must have completed the experiment yesterday. — Araştırmacılar deneyi dün tamamlamış olmalılar.</span></li>
+        <li><code>must not have</code> + V3 — imkânsızlık ("-miş olamaz") <span class="g-ex">The researchers must not have ignored the ethical guidelines. — Araştırmacılar etik kuralları göz ardı etmiş olamazlar.</span></li>
+      </ul>
+
+      <h4>NEED</h4>
+      <ul>
+        <li><code>need to</code> + V1 — günümüz/gelecek zorunluluk <span class="g-ex">Students need to submit their assignments on time. / Students do not need to attend the optional lecture. — Öğrencilerin ödevlerini zamanında teslim etmeleri gerekir. / Öğrencilerin seçmeli derse katılmaları gerekmez.</span></li>
+        <li><code>needn't have</code> + V3 — geçmişte yapılması gerekmeyen, gereksiz yapılmış <span class="g-ex">You needn't have completed the extra assignment; it was optional. — Ek ödevi tamamlamana gerek yoktu; isteğe bağlıydı.</span></li>
+      </ul>
+
+      <h4>WOULD</h4>
+      <ul>
+        <li><code>would</code> + V1 — <strong>(1) Unreal/Hypothetical</strong> (şart cümleleri) <span class="g-ex">If I were a scientist, I would study climate change more extensively. — Bilim insanı olsaydım, iklim değişikliğini daha kapsamlı incelerdim.</span> <strong>(2) Reported Speech</strong> (will'in geçmişi) <span class="g-ex">She said that she would use this method. — Bu yöntemi kullanacağını söyledi.</span> <strong>(3) Geçmişte tekrar eden alışkanlık</strong> (unreal değil) <span class="g-ex">Every summer, he would visit his grandparents in the countryside. — Her yaz büyüklerini kırsalda ziyaret ederdi.</span></li>
+        <li><code>would be</code> + V-ing — unreal/hypothetical ongoing <span class="g-ex">If he were leading the project, he would be managing the team more efficiently. — Projeyi o yönetiyor olsaydı, takımı daha verimli yönetiyor olurdu.</span>; reported/past ongoing <span class="g-ex">She mentioned that she would be attending the conference next week. — Gelecek hafta konferansa katılacağını belirtti.</span></li>
+        <li><code>would have</code> + V3 — unreal past <span class="g-ex">If they had followed the instructions, they would have avoided the mistakes. — Talimatları takip etmiş olsalardı, hatalardan kaçınmış olurlardı.</span>; reported past possibility <span class="g-ex">The manager said that the team would have completed the project by Friday. — Müdür, ekibin projeyi Cuma gününe kadar tamamlamış olacağını söyledi.</span></li>
+      </ul>
+      <div class="g-note"><strong>would (alışkanlık) vs used to:</strong> İkisi de geçmiş alışkanlığı anlatır, ama <code>used to</code> artık yapılmayan durumları da kapsar (eski hal/durum dahil), <code>would</code> sadece tekrar eden eylemler için kullanılır — durum bildiren fiillerle (be, have, know, live gibi) <code>would</code> kullanılmaz, <code>used to</code> kullanılır <span class="g-ex">She used to work at the hospital before becoming a professor. — Profesör olmadan önce hastanede çalışırdı.</span></div>
+
+      <h4>HAVE TO — Zorunluluk Çekim Tablosu</h4>
+      <div class="g-table-wrap"><table>
+        <tr><th>Zaman</th><th>Olumlu</th><th>Olumsuz</th><th>Not</th></tr>
+        <tr><td>Present</td><td>have to / has to</td><td>do not have to</td><td>Şu anda/genel zorunluluk</td></tr>
+        <tr><td>Past</td><td>had to</td><td>did not have to</td><td>Geçmiş zorunluluk</td></tr>
+        <tr><td>Future</td><td>will have to</td><td>will not have to</td><td>Gelecek zorunluluk</td></tr>
+        <tr><td>Present Perfect</td><td>have/has had to</td><td>have/has not had to</td><td>Geçmişten bugüne zorunluluk</td></tr>
+        <tr><td>Past Perfect</td><td>had had to</td><td>had not had to</td><td>Geçmişte daha eski zorunluluk</td></tr>
+        <tr><td>Future Perfect</td><td>will have had to</td><td>will not have had to</td><td>Gelecekte belirli zamana kadar zorunluluk</td></tr>
+      </table></div>
+      <p class="g-ex">Students have to submit their assignments on time. — Öğrenciler ödevlerini zamanında teslim etmek zorundadır. / She has had to work overtime for several weeks. — Birkaç haftadır fazla mesai yapmak zorunda kaldı.</p>
+
+      <h4>BE ABLE TO — Yetenek Çekim Tablosu</h4>
+      <div class="g-table-wrap"><table>
+        <tr><th>Zaman</th><th>Form</th></tr>
+        <tr><td>Present</td><td>am/is/are able to</td></tr>
+        <tr><td>Past</td><td>was/were able to</td></tr>
+        <tr><td>Future</td><td>will be able to</td></tr>
+        <tr><td>Present Perfect</td><td>have/has been able to</td></tr>
+        <tr><td>Past Perfect</td><td>had been able to</td></tr>
+        <tr><td>Future Perfect</td><td>will have been able to</td></tr>
+      </table></div>
+      <div class="g-note"><strong>could + V1 vs was/were able to + V1:</strong> <code>could</code> geçmişte genel bir yeteneği/olasılığı anlatır (tekrar eden) <span class="g-ex">When I was a child, I could swim very well. — Çocukken çok iyi yüzebilirdim.</span>; <code>was/were able to</code> ise geçmişte tek seferlik somut bir başarıyı anlatır <span class="g-ex">Despite the heavy rain, she was able to finish the race. — Şiddetli yağmura rağmen yarışı tamamlayabildi.</span></div>
+
+      <h4>BE TO + V1</h4>
+      <ul>
+        <li>Planlanmış/resmi gelecek eylem <span class="g-ex">The president is to visit the city next week. — Başkan gelecek hafta şehri ziyaret edecek.</span></li>
+        <li>Talimat/zorunluluk <span class="g-ex">Students are to submit their assignments by Friday. / Students are not to leave the classroom before the teacher arrives. — Öğrenciler ödevlerini Cuma gününe kadar teslim etmelidir. / Öğrenciler öğretmen gelmeden önce sınıfı terk etmemelidir.</span></li>
+        <li>Olasılık/şart (resmi yazı dili) <span class="g-ex">If the instructions are to be followed, the experiment will succeed. — Talimatlara uyulacaksa, deney başarılı olacaktır.</span></li>
+      </ul>
+      <div class="g-note">Geçmiş hâli <code>was/were to + V1</code> aynı üç anlamı geçmişe taşır: planlanmış eylem <span class="g-ex">He was to lead the project last year. — Geçen yıl projeyi yönetmesi planlanmıştı.</span>; geçmiş talimat <span class="g-ex">Students were to submit their assignments by Friday. — Öğrenciler ödevlerini Cuma gününe kadar teslim etmek zorundaydı.</span>; geçmişte olasılık/şart <span class="g-ex">If the instructions were to be followed, the experiment would have succeeded. — Talimatlara uyulsaydı, deney başarılı olacaktı.</span></div>
     `
   },
   {
