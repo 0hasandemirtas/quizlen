@@ -145,6 +145,14 @@
         });
       }
     });
+    (D.adjectives || []).forEach(function (s, i) {
+      if (s.items && s.items.length) {
+        sets.push({
+          id: "sifatlar-" + i, title: s.name, langs: ["İngilizce", "Türkçe"],
+          terms: s.items.map(function (v) { return { term: v.en, def: v.tr, example: "" }; })
+        });
+      }
+    });
     return sets;
   }
   var SETS = buildSets();
