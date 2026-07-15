@@ -359,6 +359,23 @@ main {
   left: 0; right: 0;
   text-align: center;
 }
+.fc-hint kbd,
+.key-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.45rem;
+  padding: 0.12rem 0.38rem;
+  border: 1px solid currentColor;
+  border-radius: 0.3rem;
+  background: rgba(127, 127, 127, 0.1);
+  color: inherit;
+  font: inherit;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0.8;
+}
 
 .fc-controls {
   display: flex;

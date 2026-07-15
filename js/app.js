@@ -104,14 +104,57 @@
   };
 
   /* Yazılı cevap kontrolü: büyük/küçük harfe bakmaz, "to " önekini ve
-     "/" ile ayrılmış alternatif cevapları kabul eder */
+     "/" ile ayrılmış alternatif cevapları kabul eder. Aynı Türkçe tanıma
+     sahip terimler de yazılı sorularda birbirinin eş anlamlı cevabıdır. */
   function isCorrectAnswer(given, want) {
     function norm(x) { return String(x || "").trim().toLocaleLowerCase("en").replace(/\s+/g, " "); }
     var g = norm(given);
     if (!g) return false;
-    return String(want).split("/").map(norm).some(function (w) {
-      return g === w || (w.indexOf("to ") === 0 && g === w.slice(3));
+    var wanted = Array.isArray(want) ? want : [want];
+    return wanted.some(function (answer) {
+      return String(answer).split("/").map(norm).some(function (w) {
+        return g === w || (w.indexOf("to ") === 0 && g === w.slice(3));
+      });
     });
+  }
+
+  function definitionKey(def) {
+    return String(def || "").trim().toLocaleLowerCase("tr").replace(/\s+/g, " ");
+  }
+
+  function equivalentTermIndices(s, ti) {
+    var key = definitionKey(s.terms[ti].def);
+    return s.terms.map(function (_, i) { return i; }).filter(function (i) {
+      return definitionKey(s.terms[i].def) === key;
+    });
+  }
+
+  function acceptedTerms(s, ti) {
+    var seen = {};
+    return equivalentTermIndices(s, ti).map(function (i) { return s.terms[i].term; }).filter(function (term) {
+      var key = String(term || "").toLocaleLowerCase("en");
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
+
+  function acceptedAnswerText(s, ti) {
+    return acceptedTerms(s, ti).join(" / ");
+  }
+
+  /* Aynı tanımı taşıyan iki terimi birbirine karşı yanlış şık olarak gösterme;
+     ayrıca aynı tanımlı şıkların tekrarlanmasını önle. */
+  function distractorIndices(s, ti, limit) {
+    var seen = {};
+    seen[definitionKey(s.terms[ti].def)] = true;
+    return shuffle(s.terms.map(function (_, i) { return i; }).filter(function (i) { return i !== ti; }))
+      .filter(function (i) {
+        var key = definitionKey(s.terms[i].def);
+        if (seen[key]) return false;
+        seen[key] = true;
+        return true;
+      }).slice(0, limit);
   }
 
   /* ---------- Veri: setleri kur ---------- */
@@ -395,7 +438,7 @@
       '<button class="icon-btn small star-btn" id="fc-star" title="Yıldızla">' + I.star + "</button>" +
       "</div>" +
       '<div class="fc-word" id="fc-front"></div>' +
-      '<div class="fc-hint">Çevirmek için tıkla veya boşluk tuşuna bas</div>' +
+      '<div class="fc-hint"><kbd>↑</kbd> / <kbd>Boşluk</kbd> çevir · <kbd>←</kbd> <kbd>→</kbd> gezin</div>' +
       "</div>" +
       '<div class="fc-face back">' +
       '<span class="fc-side-label">' + esc(s.langs[1]) + "</span>" +
@@ -469,7 +512,7 @@
     });
 
     keyHandler = function (e) {
-      if (e.key === " ") { e.preventDefault(); flip(); }
+      if (e.key === " " || e.key === "ArrowUp") { e.preventDefault(); flip(); }
       else if (e.key === "ArrowRight") next();
       else if (e.key === "ArrowLeft") prev();
     };
@@ -518,7 +561,7 @@
       '<button class="icon-btn small star-btn" id="fc-star" title="Yıldızla">' + I.star + "</button>" +
       "</div>" +
       '<div class="fc-word" id="fc-front"></div>' +
-      '<div class="fc-hint">Çevirmek için tıkla veya boşluk tuşuna bas</div>' +
+      '<div class="fc-hint"><kbd>↑</kbd> / <kbd>Boşluk</kbd> çevir · <kbd>←</kbd> <kbd>→</kbd> gezin</div>' +
       "</div>" +
       '<div class="fc-face back">' +
       '<span class="fc-side-label">' + esc(s.langs[1]) + "</span>" +
@@ -683,7 +726,11 @@
     });
 
     keyHandler = function (e) {
-      if (e.key === " ") { e.preventDefault(); flipped = !flipped; card.classList.toggle("flipped", flipped); }
+      if (e.key === " " || e.key === "ArrowUp") {
+        e.preventDefault();
+        flipped = !flipped;
+        card.classList.toggle("flipped", flipped);
+      }
       else if (e.key === "ArrowRight") nextBtn.click();
       else if (e.key === "ArrowLeft") prevBtn.click();
     };
@@ -786,8 +833,7 @@
 
     function askMC(ti) {
       var t = s.terms[ti];
-      var others = shuffle(s.terms.map(function (_, i) { return i; }).filter(function (i) { return i !== ti; }))
-        .slice(0, Math.min(4, s.terms.length) - 1);
+      var others = distractorIndices(s, ti, Math.min(4, s.terms.length) - 1);
       var opts = shuffle([ti].concat(others));
 
       var inner = $("#learn-inner");
@@ -801,7 +847,7 @@
           return '<button class="opt-btn" data-opt="' + oi + '"><span class="opt-num">' + (n + 1) + "</span>" + esc(s.terms[oi].def) + "</button>";
         }).join("") + "</div>" +
         '<div class="btn-row" style="justify-content:flex-start;margin-top:1rem">' +
-        '<button class="btn ghost" id="mc-skip">Bilmiyorum</button></div></div>';
+        '<button class="btn ghost" id="mc-skip">Bilmiyorum <kbd class="key-hint">↓</kbd></button></div></div>';
 
       var answered = false;
       function choose(btn) {
@@ -835,10 +881,10 @@
       $$(".opt-btn", inner).forEach(function (b) {
         b.addEventListener("click", function () { choose(b); });
       });
-      $("#mc-skip").addEventListener("click", function () {
+      function skip() {
         if (answered) return;
         answered = true;
-        this.disabled = true;
+        $("#mc-skip").disabled = true;
         $$(".opt-btn", inner).forEach(function (b) { b.disabled = true; });
         wrongCount++;
         addMiss(s.id, ti);
@@ -849,8 +895,14 @@
         persistState();
         updateProgress();
         setTimeout(ask, 2200);
-      });
+      }
+      $("#mc-skip").addEventListener("click", skip);
       keyHandler = function (e) {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          skip();
+          return;
+        }
         var n = parseInt(e.key, 10);
         if (n >= 1 && n <= opts.length) {
           var btn = $$(".opt-btn", inner)[n - 1];
@@ -870,12 +922,11 @@
         '<div class="q-prompt">Cevabını yaz (' + esc(s.langs[0]) + ")</div>" +
         '<form class="learn-form" id="learn-form" autocomplete="off">' +
         '<input type="text" id="learn-input" placeholder="Cevabını yaz" autocomplete="off" />' +
-        '<button type="button" class="btn ghost" id="learn-skip">Bilmiyorum</button>' +
-        '<button type="submit" class="btn primary">Cevapla</button>' +
+        '<button type="button" class="btn ghost" id="learn-skip">Bilmiyorum <kbd class="key-hint">↓</kbd></button>' +
+        '<button type="submit" class="btn primary">Cevapla <kbd class="key-hint">Enter</kbd></button>' +
         "</form></div>";
       var input = $("#learn-input");
       input.focus();
-      keyHandler = null;
 
       var answered = false;
       function grade(given, skipped) {
@@ -883,13 +934,16 @@
         if (!skipped && !given.trim()) return; // boş cevapla Enter yanlış sayılmasın
         answered = true;
         input.disabled = true;
-        if (!skipped && isCorrectAnswer(given, t.term)) {
+        var validAnswers = acceptedTerms(s, ti);
+        if (!skipped && isCorrectAnswer(given, validAnswers)) {
           stage[ti] = 2;
           decMiss(s.id, ti);
           addHit(s.id, ti);
           queue.shift();
           $("#learn-form").style.display = "none";
-          $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">Harikasın!</div>';
+          $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">' +
+            (isCorrectAnswer(given, t.term) ? "Harikasın!" :
+              "Harikasın! Bu eş anlamlı cevap da kabul edildi: " + esc(given)) + "</div>";
           speak(t.term);
           persistState();
           updateProgress();
@@ -905,10 +959,11 @@
           $("#learn-feedback").innerHTML =
             (skipped || !given.trim() ? "" :
               '<div class="ans-label">Senin cevabın</div><div class="ans-box no">' + esc(given) + "</div>") +
-            '<div class="ans-label">Doğru cevap</div><div class="ans-box ok">' + esc(t.term) +
+            '<div class="ans-label">' + (validAnswers.length > 1 ? "Kabul edilen cevaplar" : "Doğru cevap") +
+            '</div><div class="ans-box ok">' + esc(acceptedAnswerText(s, ti)) +
             ' <button class="icon-btn small" id="ans-speak" title="Sesli oku">' + I.audio + "</button></div>" +
             '<div class="btn-row" style="justify-content:flex-start;margin-top:1.25rem">' +
-            '<button class="btn primary" id="learn-cont">Devam et</button></div>';
+            '<button class="btn primary" id="learn-cont">Devam et <kbd class="key-hint">Enter / →</kbd></button></div>';
           speak(t.term); // doğru cevabı otomatik seslendir
           $("#ans-speak").addEventListener("click", function () { speak(t.term); });
           var went = false;
@@ -918,12 +973,21 @@
           // Cevabı gönderen Enter'ın (basılı tutma/çift basma) ekranı hemen geçmemesi için
           // kısa bir bekleme süresi ve tuş tekrarı koruması
           keyHandler = function (e) {
-            if (e.key === "Enter" && !e.repeat && Date.now() - shownAt > 500) cont();
+            if ((e.key === "Enter" || e.key === "ArrowRight") &&
+                !e.repeat && Date.now() - shownAt > 500) cont();
           };
         }
       }
       $("#learn-form").addEventListener("submit", function (e) { e.preventDefault(); grade(input.value, false); });
       $("#learn-skip").addEventListener("click", function () { grade("", true); });
+      // Input odaktayken genel klavye dinleyicisi çalışmaz; aşağı okunu burada
+      // doğrudan "Bilmiyorum" kısayolu olarak ele al.
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowDown") { e.preventDefault(); grade("", true); }
+      });
+      keyHandler = function (e) {
+        if (e.key === "ArrowDown") { e.preventDefault(); grade("", true); }
+      };
     }
 
     function checkpoint() {
@@ -938,13 +1002,14 @@
         '<div class="stat-pill mid"><div class="num">' + c[1] + '</div><div class="lbl">Devam ediyor</div></div>' +
         '<div class="stat-pill"><div class="num">' + c[0] + '</div><div class="lbl">Kalan</div></div>' +
         "</div>" +
-        '<div class="btn-row"><button class="btn primary big" id="learn-next-round">Devam et</button></div></div>';
+        '<div class="btn-row"><button class="btn primary big" id="learn-next-round">Devam et <kbd class="key-hint">Enter / →</kbd></button></div></div>';
       var went = false;
       var shownAt = Date.now();
       function go() { if (went) return; went = true; startRound(); }
       $("#learn-next-round").addEventListener("click", go);
       keyHandler = function (e) {
-        if (e.key === "Enter" && !e.repeat && Date.now() - shownAt > 500) go();
+        if ((e.key === "Enter" || e.key === "ArrowRight") &&
+            !e.repeat && Date.now() - shownAt > 500) go();
       };
     }
 
@@ -1017,15 +1082,16 @@
       var type = types[n % types.length];
       var t = s.terms[ti];
       if (type === "mc" && s.terms.length >= 2) {
-        var others = shuffle(s.terms.map(function (_, i) { return i; }).filter(function (i) { return i !== ti; }))
-          .slice(0, Math.min(3, s.terms.length - 1));
+        var others = distractorIndices(s, ti, Math.min(3, s.terms.length - 1));
         return { type: "mc", ti: ti, opts: shuffle([ti].concat(others)) };
       }
       if (type === "tf" && s.terms.length >= 2) {
-        var truth = Math.random() < 0.5;
+        var pool = s.terms.map(function (_, i) { return i; }).filter(function (i) {
+          return i !== ti && definitionKey(s.terms[i].def) !== definitionKey(t.def);
+        });
+        var truth = Math.random() < 0.5 || !pool.length;
         var shown = ti;
         if (!truth) {
-          var pool = s.terms.map(function (_, i) { return i; }).filter(function (i) { return i !== ti; });
           shown = pool[Math.floor(Math.random() * pool.length)];
         }
         return { type: "tf", ti: ti, shown: shown, truth: truth };
@@ -1098,11 +1164,13 @@
         var ok = false;
         if (q.type === "written") {
           var inp = $('input[data-q="' + n + '"]', box);
-          ok = isCorrectAnswer(inp.value, t.term);
+          var validAnswers = acceptedTerms(s, q.ti);
+          ok = isCorrectAnswer(inp.value, validAnswers);
           inp.disabled = true;
           res.innerHTML = ok
             ? '<div class="tq-answer ok">✓ Doğru</div>'
-            : '<div class="tq-answer no">✗ Doğru cevap: ' + esc(t.term) + "</div>";
+            : '<div class="tq-answer no">✗ ' + (validAnswers.length > 1 ? "Kabul edilen cevaplar: " : "Doğru cevap: ") +
+              esc(acceptedAnswerText(s, q.ti)) + "</div>";
         } else if (q.type === "mc") {
           ok = answers[n] != null && +answers[n] === q.ti;
           $$(".opt-btn", box).forEach(function (b) {
