@@ -8,7 +8,7 @@ Buradaki katkım bir yazılım geliştirme iddiasından çok; ihtiyacı belirlem
 
 ## Neden böyle bir proje yaptım?
 
-Amacım yalnızca kelime kartlarına bakmak değil, çalışmayı daha düzenli ve ölçülebilir hâle getirmekti. Bir kelimeyi bir kez doğru bilmek her zaman öğrenildiği anlamına gelmiyor. Bu nedenle uygulama, zorlandığım kelimeleri tekrar karşıma çıkarıyor; üst üste doğru bildiklerimi ve sürekli hata yaptıklarımı ayrı ayrı takip ediyor.
+Bir kelimeyi bir kez doğru bilmek her zaman öğrenildiği anlamına gelmiyor. Bu nedenle uygulama, zorlandığım kelimeleri tekrar karşıma çıkarıyor; üst üste doğru bildiklerimi ve sürekli hata yaptıklarımı ayrı ayrı takip ediyor.
 
 Projeyi kullanırken:
 
