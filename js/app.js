@@ -118,6 +118,74 @@
     });
   }
 
+  /* Öğren modunda küçük yazım hatalarını tolere et. Çok kısa cevaplarda
+     başka bir kelimeyi yanlışlıkla doğru saymamak için benzerlik uygulanmaz;
+     4-7 karakterde 1, 8 ve üzerindeki cevaplarda 2 düzenlemeye izin verilir. */
+  function writtenAnswerMatch(given, want) {
+    function norm(x) { return String(x || "").trim().toLocaleLowerCase("en").replace(/\s+/g, " "); }
+    function variants(x) {
+      var value = norm(x);
+      return value.indexOf("to ") === 0 ? [value, value.slice(3)] : [value];
+    }
+    function editDistance(a, b, limit) {
+      if (Math.abs(a.length - b.length) > limit) return limit + 1;
+      var prev = b.split("").map(function (_, i) { return i + 1; });
+      prev.unshift(0);
+      var beforePrev = null;
+      for (var i = 1; i <= a.length; i++) {
+        var row = [i];
+        var rowMin = i;
+        for (var j = 1; j <= b.length; j++) {
+          row[j] = Math.min(
+            row[j - 1] + 1,
+            prev[j] + 1,
+            prev[j - 1] + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1)
+          );
+          if (beforePrev && i > 1 && j > 1 &&
+              a.charAt(i - 1) === b.charAt(j - 2) &&
+              a.charAt(i - 2) === b.charAt(j - 1)) {
+            row[j] = Math.min(row[j], beforePrev[j - 2] + 1);
+          }
+          rowMin = Math.min(rowMin, row[j]);
+        }
+        if (rowMin > limit) return limit + 1;
+        beforePrev = prev;
+        prev = row;
+      }
+      return prev[b.length];
+    }
+
+    var g = norm(given);
+    if (!g) return { correct: false };
+    var answers = Array.isArray(want) ? want : [want];
+    var candidates = [];
+    answers.forEach(function (answer) {
+      String(answer).split("/").forEach(function (part) {
+        variants(part).forEach(function (comparable) {
+          candidates.push({ answer: String(part).trim().replace(/\s+/g, " "), comparable: comparable });
+        });
+      });
+    });
+
+    for (var i = 0; i < candidates.length; i++) {
+      if (g === candidates[i].comparable) {
+        return { correct: true, typo: false, answer: candidates[i].answer };
+      }
+    }
+
+    var best = null;
+    candidates.forEach(function (candidate) {
+      var length = candidate.comparable.length;
+      var limit = length >= 8 ? 2 : (length >= 4 ? 1 : 0);
+      if (!limit) return;
+      var distance = editDistance(g, candidate.comparable, limit);
+      if (distance <= limit && (!best || distance < best.distance)) {
+        best = { correct: true, typo: true, answer: candidate.answer, distance: distance };
+      }
+    });
+    return best || { correct: false };
+  }
+
   function definitionKey(def) {
     return String(def || "").trim().toLocaleLowerCase("tr").replace(/\s+/g, " ");
   }
@@ -935,19 +1003,22 @@
         answered = true;
         input.disabled = true;
         var validAnswers = acceptedTerms(s, ti);
-        if (!skipped && isCorrectAnswer(given, validAnswers)) {
+        var match = skipped ? { correct: false } : writtenAnswerMatch(given, validAnswers);
+        if (match.correct) {
           stage[ti] = 2;
           decMiss(s.id, ti);
           addHit(s.id, ti);
           queue.shift();
           $("#learn-form").style.display = "none";
           $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">' +
-            (isCorrectAnswer(given, t.term) ? "Harikasın!" :
-              "Harikasın! Bu eş anlamlı cevap da kabul edildi: " + esc(given)) + "</div>";
+            (match.typo
+              ? "Doğru kabul edildi. Doğru yazımı: <strong>" + esc(match.answer) + "</strong>"
+              : (isCorrectAnswer(given, t.term) ? "Harikasın!" :
+                "Harikasın! Bu eş anlamlı cevap da kabul edildi: " + esc(given))) + "</div>";
           speak(t.term);
           persistState();
           updateProgress();
-          setTimeout(ask, 1000);
+          setTimeout(ask, match.typo ? 2200 : 1000);
         } else {
           wrongCount++;
           addMiss(s.id, ti);

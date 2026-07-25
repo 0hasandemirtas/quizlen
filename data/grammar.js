@@ -502,122 +502,125 @@ window.DATA.grammar = [
     `
   },
   {
-    title: "Bağlaçlar — Zıtlık, Neden-Sonuç, Amaç-Sonuç",
+    title: "Bağlaçlar ve Bağlayıcı İfadeler — Tek Tabloda",
     body: `
-      <p class="g-intro">Her satırda birkaç eş anlamlı bağlaç var — hepsini aynı anda ezberlemek zorunda değilsin, birini iyi öğrenip cümlede tanı, gerisi zamanla gelir. Örnek cümleler grubun ilk kelimesiyle kurulu.</p>
+      <p class="g-intro">Bağlaçlar anlamlarına göre tek tabloda toplandı. Aynı satırdaki ifadeler benzer iş görür; ancak yapı ve noktalama farkı varsa <strong>Kalıp</strong> sütununda ayrıca gösterilir.</p>
+      <div class="g-note cj-legend">
+        <strong>Kalıp anahtarı:</strong> <code>S + V</code> = özne + çekimli fiil içeren tam cümle, <code>isim / V-ing</code> = ardından tam cümle gelmez, <code>V1</code> = fiilin yalın hâli.<br>
+        <strong>Hızlı ayrım:</strong> <code>although + S + V</code> ↔ <code>despite + isim / V-ing</code> · <code>because + S + V</code> ↔ <code>because of + isim / V-ing</code> · <code>so that + S + V</code> ↔ <code>in order to + V1</code>.<br>
+        <strong>Zaman / koşul:</strong> Gelecek anlamı olsa da bağlaçtan hemen sonra genellikle <code>will</code> kullanılmaz: <em>When I arrive...</em>, <em>If it rains...</em>
+      </div>
 
-      <h4>Zıtlık Bağlaçları</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>although, though, even though, much as</td><td>-se de / -sa da, -e rağmen</td><td>Although it was raining, we went out. — Yağmur yağmasına rağmen dışarı çıktık.</td></tr>
-        <tr><td>despite, in spite of, notwithstanding, for all, albeit</td><td>-e rağmen</td><td>Despite the rain, we went out. — Yağmura rağmen dışarı çıktık.</td></tr>
-        <tr><td>however, but, yet, still, nevertheless, nonetheless</td><td>ama / fakat / ancak</td><td>He was tired; however, he kept working. — Yorgundu ama çalışmaya devam etti.</td></tr>
-        <tr><td>while, whereas, whilst</td><td>-se de / -sa da, -iken</td><td>While he likes tea, she prefers coffee. — O çay severken kadın kahveyi tercih ediyor.</td></tr>
-        <tr><td>unlike, as opposed to, conversely, in contrast to, by contrast, in contrast with, contrary to</td><td>aksine / zıttına / tersine</td><td>Unlike his brother, he is very shy. — Kardeşinin aksine o çok utangaç.</td></tr>
-        <tr><td>even so</td><td>yine de</td><td>It was expensive; even so, we bought it. — Pahalıydı; yine de aldık.</td></tr>
-        <tr><td>on the other hand</td><td>diğer yandan</td><td>She is strict; on the other hand, she is fair. — Katıdır; diğer yandan adildir.</td></tr>
-      </table></div>
+      <div class="g-table-wrap conjunction-table-wrap"><table class="conjunction-table">
+        <colgroup><col class="cj-col-expression"><col class="cj-col-meaning"><col class="cj-col-pattern"><col class="cj-col-example"></colgroup>
+        <thead>
+          <tr><th scope="col">Bağlaç / İfade</th><th scope="col">Türkçe anlam</th><th scope="col">Kalıp / kullanım</th><th scope="col">Örnek</th></tr>
+        </thead>
 
-      <h4>Bağımsızlık / Kayıtsızlık</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>regardless of, irrespective of</td><td>-e bakmaksızın</td><td>Regardless of the cost, we'll do it. — Maliyete bakmaksızın yapacağız.</td></tr>
-        <tr><td>however + sıfat, no matter how</td><td>ne kadar … olursa olsun</td><td>No matter how hard it is, I'll finish it. — Ne kadar zor olursa olsun bitireceğim.</td></tr>
-      </table></div>
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Zıtlık</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">although, though, even though, much as</td><td data-label="Türkçe anlam">-se / -sa da, -e rağmen</td><td data-label="Kalıp / kullanım"><code>+ S + V</code></td><td data-label="Örnek">Although it was raining, we went out.<span class="cj-translation">Yağmur yağıyor olsa da dışarı çıktık.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">despite, in spite of, notwithstanding, for all</td><td data-label="Türkçe anlam">-e rağmen</td><td data-label="Kalıp / kullanım"><code>+ isim / V-ing</code></td><td data-label="Örnek">Despite the rain, we went out.<span class="cj-translation">Yağmura rağmen dışarı çıktık.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">albeit</td><td data-label="Türkçe anlam">gerçi, -se de</td><td data-label="Kalıp / kullanım"><code>+ sıfat / zarf / kısa ifade</code></td><td data-label="Örnek">The plan worked, albeit slowly.<span class="cj-translation">Plan, yavaş da olsa, işe yaradı.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">but, yet</td><td data-label="Türkçe anlam">ama, fakat, yine de</td><td data-label="Kalıp / kullanım"><code>S1, but / yet S2</code></td><td data-label="Örnek">He was tired, but he kept working.<span class="cj-translation">Yorgundu ama çalışmaya devam etti.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">however, still, nevertheless, nonetheless, even so</td><td data-label="Türkçe anlam">ancak, yine de, buna rağmen</td><td data-label="Kalıp / kullanım">Yeni cümle bağlar: <code>; however,</code></td><td data-label="Örnek">He was tired; however, he kept working.<span class="cj-translation">Yorgundu; yine de çalışmaya devam etti.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">while, whereas, whilst</td><td data-label="Türkçe anlam">oysa, -iken</td><td data-label="Kalıp / kullanım"><code>+ S + V</code><span class="cj-hint"><em>while</em> zaman anlamına da gelebilir.</span></td><td data-label="Örnek">While Ali likes tea, Ayşe prefers coffee.<span class="cj-translation">Ali çayı severken Ayşe kahveyi tercih ediyor.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">unlike, in contrast to / with, contrary to</td><td data-label="Türkçe anlam">-in aksine, -e zıt olarak</td><td data-label="Kalıp / kullanım"><code>+ isim / zamir</code></td><td data-label="Örnek">Unlike his brother, he is very shy.<span class="cj-translation">Kardeşinin aksine o çok utangaç.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">conversely, by contrast, on the other hand</td><td data-label="Türkçe anlam">tersine, buna karşılık, diğer yandan</td><td data-label="Kalıp / kullanım">Yeni cümle bağlar; ardından virgül gelir.</td><td data-label="Örnek">She is strict; on the other hand, she is fair.<span class="cj-translation">Katıdır; diğer yandan adildir.</span></td></tr>
+        </tbody>
 
-      <h4>Alternatif / Tercih</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>rather than, in place of, instead</td><td>-den ziyade</td><td>Rather than complain, he took action. — Şikayet etmektense harekete geçti.</td></tr>
-        <tr><td>as opposed to, in lieu of, in preference to, over</td><td>-den ziyade</td><td>He chose tea as opposed to coffee. — Kahve yerine çayı seçti.</td></tr>
-      </table></div>
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Koşuldan bağımsızlık / “Ne olursa olsun”</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">regardless of, irrespective of</td><td data-label="Türkçe anlam">-e bakmaksızın</td><td data-label="Kalıp / kullanım"><code>+ isim / V-ing</code></td><td data-label="Örnek">Regardless of the cost, we'll do it.<span class="cj-translation">Maliyete bakmaksızın yapacağız.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">however + sıfat / zarf, no matter how + sıfat / zarf</td><td data-label="Türkçe anlam">ne kadar ... olursa olsun</td><td data-label="Kalıp / kullanım"><code>+ S + V</code></td><td data-label="Örnek">No matter how hard it is, I'll finish it.<span class="cj-translation">Ne kadar zor olursa olsun bitireceğim.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">whether ... or not</td><td data-label="Türkçe anlam">... olsun olmasın</td><td data-label="Kalıp / kullanım"><code>whether + S + V + or not</code></td><td data-label="Örnek">Whether you like it or not, we're going.<span class="cj-translation">İster beğen ister beğenme, gidiyoruz.</span></td></tr>
+        </tbody>
 
-      <h4>Neden-Sonuç Bağlaçları</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>because, since, as, for, in that</td><td>için / çünkü</td><td>I stayed home because it was raining. — Yağmur yağdığı için evde kaldım.</td></tr>
-        <tr><td>now that, seeing that, given that, because of, due to, owing to, on account of, in as much as</td><td>-den dolayı / madem ki</td><td>Now that you're here, let's start. — Madem buradasın, başlayalım.</td></tr>
-        <tr><td>as a result, consequently</td><td>sonuç olarak</td><td>He didn't study; as a result, he failed. — Çalışmadı; sonuç olarak başarısız oldu.</td></tr>
-        <tr><td>so, thus, hence, therefore, thereby</td><td>bu yüzden / böylece</td><td>It was late, so we left. — Geç olmuştu, bu yüzden ayrıldık.</td></tr>
-      </table></div>
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Alternatif / tercih</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">rather than</td><td data-label="Türkçe anlam">-mektense, -den ziyade</td><td data-label="Kalıp / kullanım">İki paralel yapıyı bağlar: <code>isim / V1 / V-ing</code></td><td data-label="Örnek">Rather than complain, he took action.<span class="cj-translation">Şikâyet etmektense harekete geçti.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">instead of, in place of, in lieu of</td><td data-label="Türkçe anlam">yerine</td><td data-label="Kalıp / kullanım"><code>+ isim / V-ing</code></td><td data-label="Örnek">We walked instead of taking a taxi.<span class="cj-translation">Taksiye binmek yerine yürüdük.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">in preference to, as opposed to</td><td data-label="Türkçe anlam">-i tercih ederek, -den ziyade</td><td data-label="Kalıp / kullanım"><code>+ isim / V-ing</code></td><td data-label="Örnek">He chose tea as opposed to coffee.<span class="cj-translation">Kahve yerine çayı seçti.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">prefer / choose X over Y</td><td data-label="Türkçe anlam">X'i Y'ye tercih etmek</td><td data-label="Kalıp / kullanım">Sabit fiil kalıbı: <code>X over Y</code></td><td data-label="Örnek">She chose the train over the bus.<span class="cj-translation">Otobüs yerine treni seçti.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">instead</td><td data-label="Türkçe anlam">onun yerine</td><td data-label="Kalıp / kullanım">Yeni cümle bağlar: <code>; instead,</code></td><td data-label="Örnek">He didn't complain; instead, he took action.<span class="cj-translation">Şikâyet etmedi; onun yerine harekete geçti.</span></td></tr>
+        </tbody>
 
-      <h4>Vasıta / Yardım / Sebep</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>thanks to, with the help of, with the aid of</td><td>sayesinde / yardımıyla</td><td>Thanks to you, I passed. — Senin sayende geçtim.</td></tr>
-        <tr><td>through, by means of, via</td><td>sayesinde / aracılığıyla</td><td>He succeeded through hard work. — Sıkı çalışma sayesinde başardı.</td></tr>
-      </table></div>
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Neden / sonuç</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">because, since, as, in that, now that, seeing that, given that, inasmuch as</td><td data-label="Türkçe anlam">çünkü, -dığı için, madem ki</td><td data-label="Kalıp / kullanım"><code>+ S + V</code><span class="cj-hint"><em>since / as</em> zaman anlamına da gelebilir.</span></td><td data-label="Örnek">I stayed home because it was raining.<span class="cj-translation">Yağmur yağdığı için evde kaldım.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">for</td><td data-label="Türkçe anlam">çünkü</td><td data-label="Kalıp / kullanım">İki cümleyi bağlar: <code>S1, for S2</code></td><td data-label="Örnek">We stayed home, for it was raining.<span class="cj-translation">Evde kaldık çünkü yağmur yağıyordu.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">because of, due to, owing to, on account of, on the grounds of, by reason of, thanks to</td><td data-label="Türkçe anlam">nedeniyle, -den dolayı, sayesinde</td><td data-label="Kalıp / kullanım"><code>+ isim / V-ing</code><span class="cj-hint"><em>thanks to</em> çoğunlukla olumlu neden bildirir.</span></td><td data-label="Örnek">The match was canceled because of the rain.<span class="cj-translation">Maç yağmur nedeniyle iptal edildi.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">so</td><td data-label="Türkçe anlam">bu yüzden</td><td data-label="Kalıp / kullanım"><code>S1, so S2</code></td><td data-label="Örnek">It was late, so we left.<span class="cj-translation">Geç olmuştu, bu yüzden ayrıldık.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">therefore, thus, hence, consequently, as a result</td><td data-label="Türkçe anlam">bu nedenle, böylece, sonuç olarak</td><td data-label="Kalıp / kullanım">Yeni cümle bağlar: <code>; therefore,</code></td><td data-label="Örnek">He didn't study; therefore, he failed.<span class="cj-translation">Çalışmadı; bu nedenle başarısız oldu.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">thereby</td><td data-label="Türkçe anlam">böylece, bu yolla</td><td data-label="Kalıp / kullanım"><code>thereby + V-ing</code></td><td data-label="Örnek">She saved money, thereby reducing her stress.<span class="cj-translation">Para biriktirdi ve böylece stresini azalttı.</span></td></tr>
+        </tbody>
 
-      <h4>Amaç-Sonuç Bağlaçları</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>so that, in order that, in order to, so as to</td><td>-mek için / -mek amacıyla</td><td>She left early so that she could catch the bus. — Otobüsü yakalamak için erken çıktı.</td></tr>
-        <tr><td>for the purpose of, with a view to, for the sake of, with the aim of, with the goal of, in pursuit of, in an attempt to</td><td>-amacıyla</td><td>He studied with a view to passing the exam. — Sınavı geçmek amacıyla çalıştı.</td></tr>
-        <tr><td>on the grounds of</td><td>zemin üzerinde</td><td>He was fired on the grounds of misconduct. — Suistimal gerekçesiyle kovuldu.</td></tr>
-        <tr><td>thanks to</td><td>sayesinde</td><td>Thanks to the map, we didn't get lost. — Harita sayesinde kaybolmadık.</td></tr>
-        <tr><td>by reason of</td><td>nedeniyle</td><td>Absent by reason of illness. — Hastalık nedeniyle yok.</td></tr>
-      </table></div>
-    `
-  },
-  {
-    title: "Bağlaçlar — Koşul, Ekleme, Zaman, Benzetme",
-    body: `
-      <p class="g-intro">Önceki bağlaç listesinin devamı. Yine her satırın örneği grubun ilk kelimesiyle kurulu.</p>
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Vasıta / yöntem</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">with the help of, with the aid of</td><td data-label="Türkçe anlam">yardımıyla</td><td data-label="Kalıp / kullanım"><code>+ isim</code></td><td data-label="Örnek">With the help of my teacher, I passed.<span class="cj-translation">Öğretmenimin yardımıyla geçtim.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">through, by means of, via</td><td data-label="Türkçe anlam">aracılığıyla, yoluyla</td><td data-label="Kalıp / kullanım"><code>+ isim / V-ing</code></td><td data-label="Örnek">He succeeded through hard work.<span class="cj-translation">Sıkı çalışma yoluyla başarıya ulaştı.</span></td></tr>
+        </tbody>
 
-      <h4>Koşul Bağlaçları</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>if, only if</td><td>-eğer</td><td>If it rains, we'll stay in. — Yağmur yağarsa içeride kalırız.</td></tr>
-        <tr><td>if not, unless</td><td>-medikçe</td><td>Unless you study, you won't pass. — Çalışmadıkça geçemezsin.</td></tr>
-        <tr><td>as long as, so long as</td><td>-dığı sürece</td><td>As long as you try, it's fine. — Denediğin sürece sorun yok.</td></tr>
-        <tr><td>providing that, provided that, on condition that</td><td>-şartıyla / -koşuluyla</td><td>You can go, provided that you finish first. — Önce bitirmen şartıyla gidebilirsin.</td></tr>
-        <tr><td>lest, for fear that</td><td>-korkusuyla</td><td>She whispered for fear that someone would hear. — Birinin duyması korkusuyla fısıldadı.</td></tr>
-        <tr><td>imagining that, supposing that</td><td>-farz et ki</td><td>Supposing that it's true, what do we do? — Farz et ki doğru, ne yapacağız?</td></tr>
-        <tr><td>in case, in case of, in the event that</td><td>-olursa / -durumunda</td><td>Take an umbrella in case it rains. — Yağmur yağarsa diye şemsiye al.</td></tr>
-        <tr><td>otherwise, or else</td><td>-aksi takdirde</td><td>Hurry, otherwise we'll be late. — Acele et, aksi takdirde geç kalacağız.</td></tr>
-        <tr><td>even if</td><td>-sa bile</td><td>Even if it rains, we'll go. — Yağmur yağsa bile gideceğiz.</td></tr>
-        <tr><td>whether … or not</td><td>-olsun olmasın</td><td>Whether you like it or not, we're going. — İster beğen ister beğenme, gidiyoruz.</td></tr>
-      </table></div>
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Amaç / önlem</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">so that, in order that</td><td data-label="Türkçe anlam">-mesi için</td><td data-label="Kalıp / kullanım"><code>+ S + V</code><span class="cj-hint">Amaç cümlelerinde çoğunlukla <em>can / could / will / would</em> gibi bir modal kullanılır.</span></td><td data-label="Örnek">She left early so that she could catch the bus.<span class="cj-translation">Otobüsü yakalayabilmek için erken çıktı.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">in order to, so as to, in an attempt to</td><td data-label="Türkçe anlam">-mek için, -mek amacıyla</td><td data-label="Kalıp / kullanım"><code>+ V1</code></td><td data-label="Örnek">She left early in order to catch the bus.<span class="cj-translation">Otobüsü yakalamak için erken çıktı.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">for the purpose of, with a view to, for the sake of, with the aim of, with the goal of, in pursuit of</td><td data-label="Türkçe anlam">amacıyla, uğruna</td><td data-label="Kalıp / kullanım"><code>+ isim / V-ing</code><span class="cj-hint"><em>with a view to doing</em></span></td><td data-label="Örnek">He studied with a view to passing the exam.<span class="cj-translation">Sınavı geçmek amacıyla çalıştı.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">lest, for fear that</td><td data-label="Türkçe anlam">-mesin diye, korkusuyla</td><td data-label="Kalıp / kullanım"><code>lest + S + V1 / should V1</code><br><code>for fear that + S + modal</code></td><td data-label="Örnek">She whispered for fear that someone would hear.<span class="cj-translation">Biri duyar korkusuyla fısıldadı.</span></td></tr>
+        </tbody>
 
-      <h4>Ekleme Bağlaçları</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>along with, together with, besides, as well as, in addition to</td><td>-yanı sıra / -ek olarak</td><td>Besides English, she speaks French. — İngilizcenin yanı sıra Fransızca da konuşuyor.</td></tr>
-        <tr><td>furthermore, moreover</td><td>-dahası</td><td>It's cheap; furthermore, it's reliable. — Ucuz; dahası güvenilir.</td></tr>
-        <tr><td>what is more, on top of that</td><td>-üstelik</td><td>He was late; what is more, he forgot his notes. — Geç kaldı; üstelik notlarını unuttu.</td></tr>
-        <tr><td>coupled with</td><td>-ile birlikte / -ek olarak</td><td>Hard work, coupled with luck, led to success. — Şansla birlikte sıkı çalışma başarıyı getirdi.</td></tr>
-      </table></div>
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Koşul</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">if</td><td data-label="Türkçe anlam">eğer, -se / -sa</td><td data-label="Kalıp / kullanım"><code>if + S + V</code></td><td data-label="Örnek">If it rains, we'll stay in.<span class="cj-translation">Yağmur yağarsa içeride kalırız.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">only if</td><td data-label="Türkçe anlam">ancak ... ise</td><td data-label="Kalıp / kullanım"><code>only if + S + V</code></td><td data-label="Örnek">You can go only if you finish first.<span class="cj-translation">Yalnızca önce bitirirsen gidebilirsin.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">unless, if ... not</td><td data-label="Türkçe anlam">-medikçe, ... değilse</td><td data-label="Kalıp / kullanım"><code>+ S + V</code><span class="cj-hint"><em>unless</em> zaten olumsuz anlam taşır.</span></td><td data-label="Örnek">Unless you study, you won't pass.<span class="cj-translation">Çalışmadıkça geçemezsin.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">as long as, so long as</td><td data-label="Türkçe anlam">-dığı sürece</td><td data-label="Kalıp / kullanım"><code>+ S + V</code></td><td data-label="Örnek">As long as you try, it's fine.<span class="cj-translation">Denediğin sürece sorun yok.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">providing that, provided that, on condition that</td><td data-label="Türkçe anlam">şartıyla, koşuluyla</td><td data-label="Kalıp / kullanım"><code>+ S + V</code></td><td data-label="Örnek">You can go provided that you finish first.<span class="cj-translation">Önce bitirmen şartıyla gidebilirsin.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">assuming (that), supposing (that), imagine (that)</td><td data-label="Türkçe anlam">farz edersek, varsayalım ki</td><td data-label="Kalıp / kullanım"><code>+ S + V</code><span class="cj-hint"><em>imagine</em> emir biçiminde kullanılır.</span></td><td data-label="Örnek">Supposing that it's true, what do we do?<span class="cj-translation">Doğru olduğunu varsayarsak ne yapacağız?</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">in case, in the event that</td><td data-label="Türkçe anlam">olur diye, olması durumunda</td><td data-label="Kalıp / kullanım"><code>+ S + V</code></td><td data-label="Örnek">Take an umbrella in case it rains.<span class="cj-translation">Yağmur yağar ihtimaline karşı şemsiye al.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">in case of, in the event of</td><td data-label="Türkçe anlam">durumunda</td><td data-label="Kalıp / kullanım"><code>+ isim</code></td><td data-label="Örnek">In case of fire, use the stairs.<span class="cj-translation">Yangın durumunda merdivenleri kullan.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">otherwise, or else</td><td data-label="Türkçe anlam">aksi takdirde</td><td data-label="Kalıp / kullanım">Sonuç cümlesi bağlar; burada <code>will</code> kullanılabilir.</td><td data-label="Örnek">Hurry; otherwise, we'll be late.<span class="cj-translation">Acele et; aksi takdirde geç kalacağız.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">even if</td><td data-label="Türkçe anlam">-sa bile</td><td data-label="Kalıp / kullanım"><code>+ S + V</code></td><td data-label="Örnek">Even if it rains, we'll go.<span class="cj-translation">Yağmur yağsa bile gideceğiz.</span></td></tr>
+        </tbody>
 
-      <h4>Örnekleme / Açıklama</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>for example, for instance, such as</td><td>-örneğin</td><td>Some fruits, such as apples, are cheap. — Elma gibi bazı meyveler ucuzdur.</td></tr>
-        <tr><td>to put it another way, in other words</td><td>-başka bir deyişle</td><td>In other words, we need more time. — Başka bir deyişle daha fazla zamana ihtiyacımız var.</td></tr>
-        <tr><td>that is, that is to say, namely</td><td>-yani</td><td>Only one person objected, namely the manager. — Sadece bir kişi itiraz etti, yani müdür.</td></tr>
-      </table></div>
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Ekleme</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">along with, together with, as well as, in addition to, coupled with</td><td data-label="Türkçe anlam">yanı sıra, ile birlikte, ek olarak</td><td data-label="Kalıp / kullanım"><code>+ isim / V-ing</code></td><td data-label="Örnek">Along with English, she speaks French.<span class="cj-translation">İngilizcenin yanı sıra Fransızca da konuşuyor.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">besides</td><td data-label="Türkçe anlam">yanı sıra, ayrıca</td><td data-label="Kalıp / kullanım"><code>+ isim / V-ing</code> veya <code>Besides, S + V</code></td><td data-label="Örnek">Besides English, she speaks French.<span class="cj-translation">İngilizcenin yanı sıra Fransızca da konuşuyor.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">furthermore, moreover, what is more, on top of that</td><td data-label="Türkçe anlam">dahası, üstelik</td><td data-label="Kalıp / kullanım">Yeni cümle bağlar; ardından virgül gelir.</td><td data-label="Örnek">It's cheap; moreover, it's reliable.<span class="cj-translation">Ucuz; dahası güvenilir.</span></td></tr>
+        </tbody>
 
-      <h4>Zaman Bağlaçları</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>when, once, while, after, before, prior to, by the time, until</td><td>-dığında / -diğinde / -iken / -sonra / -önce / -ıncaya kadar / -e kadar</td><td>Once you finish, call me. — Bitirdiğinde beni ara.</td></tr>
-        <tr><td>even when, even after, even before</td><td>-diği zaman bile / -den sonra bile / -den önce bile</td><td>Even after he apologized, she was upset. — Özür diledikten sonra bile üzgündü.</td></tr>
-        <tr><td>whenever</td><td>her ne zaman olursa</td><td>Whenever you need help, call me. — Ne zaman yardıma ihtiyacın olursa ara.</td></tr>
-        <tr><td>as soon as, no sooner … than, hardly … ever, scarcely … when, barely … when</td><td>-ar … -maz</td><td>As soon as she arrived, it started to rain. — O gelir gelmez yağmur başladı.</td></tr>
-      </table></div>
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Örnekleme / açıklama</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">for example, for instance</td><td data-label="Türkçe anlam">örneğin</td><td data-label="Kalıp / kullanım">Cümle veya örnek ekler; çoğunlukla virgülle ayrılır.</td><td data-label="Örnek">Some fruits are cheap; for example, apples are affordable.<span class="cj-translation">Bazı meyveler ucuzdur; örneğin elmalar hesaplıdır.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">such as</td><td data-label="Türkçe anlam">gibi, örneğin</td><td data-label="Kalıp / kullanım"><code>+ isim / liste</code></td><td data-label="Örnek">Some fruits, such as apples, are cheap.<span class="cj-translation">Elma gibi bazı meyveler ucuzdur.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">in other words, to put it another way, that is, that is to say</td><td data-label="Türkçe anlam">başka bir deyişle, yani</td><td data-label="Kalıp / kullanım">Önceki fikri yeniden açıklar.</td><td data-label="Örnek">In other words, we need more time.<span class="cj-translation">Başka bir deyişle daha fazla zamana ihtiyacımız var.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">namely</td><td data-label="Türkçe anlam">yani, şöyle ki</td><td data-label="Kalıp / kullanım"><code>+ isim / liste</code></td><td data-label="Örnek">Only one person, namely the manager, objected.<span class="cj-translation">Yalnızca bir kişi, yani müdür, itiraz etti.</span></td></tr>
+        </tbody>
 
-      <h4>Hariç Tutma / İstisna</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>except for, apart from, aside from, excluding, other than</td><td>hariç</td><td>Everyone came, except for John. — John hariç herkes geldi.</td></tr>
-      </table></div>
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Zaman</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">when, once, while, after, before, by the time, until</td><td data-label="Türkçe anlam">-dığında, -iken, -den sonra / önce, -e kadar</td><td data-label="Kalıp / kullanım"><code>+ S + V</code><span class="cj-hint"><em>after / before</em> ayrıca isim veya V-ing alabilir.</span></td><td data-label="Örnek">Once you finish, call me.<span class="cj-translation">Bitirdiğinde beni ara.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">prior to</td><td data-label="Türkçe anlam">-den önce</td><td data-label="Kalıp / kullanım"><code>+ isim / V-ing</code></td><td data-label="Örnek">Prior to leaving, she called me.<span class="cj-translation">Ayrılmadan önce beni aradı.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">even when, even after, even before</td><td data-label="Türkçe anlam">-dığında / -den sonra / önce bile</td><td data-label="Kalıp / kullanım"><code>+ S + V</code></td><td data-label="Örnek">Even after he apologized, she was upset.<span class="cj-translation">Özür diledikten sonra bile üzgündü.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">whenever</td><td data-label="Türkçe anlam">ne zaman ... olursa</td><td data-label="Kalıp / kullanım"><code>+ S + V</code></td><td data-label="Örnek">Whenever you need help, call me.<span class="cj-translation">Ne zaman yardıma ihtiyacın olursa beni ara.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">as soon as</td><td data-label="Türkçe anlam">-ar ... -maz</td><td data-label="Kalıp / kullanım"><code>+ S + V</code></td><td data-label="Örnek">As soon as she arrived, it started to rain.<span class="cj-translation">O gelir gelmez yağmur başladı.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">no sooner ... than; hardly / scarcely / barely ... when / before</td><td data-label="Türkçe anlam">daha ... olur olmaz</td><td data-label="Kalıp / kullanım">Cümle başında devrik yapı: <code>No sooner had + S + V3 + than ...</code></td><td data-label="Örnek">No sooner had she arrived than it started to rain.<span class="cj-translation">O gelir gelmez yağmur başladı.</span></td></tr>
+        </tbody>
 
-      <h4>Benzetme Bağlaçları</h4>
-      <div class="g-table-wrap"><table>
-        <tr><th>İngilizce</th><th>Türkçe Ek / Anlam</th><th>Örnek</th></tr>
-        <tr><td>likewise, similarly, in like manner, just as, similar to</td><td>benzer şekilde</td><td>He works hard; likewise, his sister does too. — Sıkı çalışıyor; benzer şekilde kız kardeşi de.</td></tr>
-        <tr><td>in the same way, equally, the same … as</td><td>aynı / aynı şekilde</td><td>She is as tall as her brother. — Kardeşi kadar uzun.</td></tr>
-        <tr><td>correspondingly</td><td>karşılık olarak</td><td>Sales rose; correspondingly, profits grew. — Satışlar arttı; karşılık olarak kârlar büyüdü.</td></tr>
-        <tr><td>as … as</td><td>… kadar …</td><td>This is as good as that one. — Bu da o kadar iyi.</td></tr>
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Hariç tutma / istisna</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">except for, apart from, aside from, excluding, other than</td><td data-label="Türkçe anlam">hariç, dışında</td><td data-label="Kalıp / kullanım"><code>+ isim / V-ing</code></td><td data-label="Örnek">Everyone came except for John.<span class="cj-translation">John hariç herkes geldi.</span></td></tr>
+        </tbody>
+
+        <tbody class="cj-group">
+          <tr class="cj-section"><th colspan="4" scope="rowgroup">Benzetme / benzerlik</th></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">likewise, similarly, in like manner, in the same way, equally, correspondingly</td><td data-label="Türkçe anlam">benzer şekilde, aynı biçimde, buna paralel olarak</td><td data-label="Kalıp / kullanım">Yeni cümle bağlar; ardından virgül gelir.</td><td data-label="Örnek">He works hard; likewise, his sister works hard.<span class="cj-translation">O sıkı çalışır; kız kardeşi de aynı şekilde çalışır.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">just as</td><td data-label="Türkçe anlam">tıpkı ... gibi</td><td data-label="Kalıp / kullanım"><code>+ S + V</code></td><td data-label="Örnek">Just as I expected, the test was difficult.<span class="cj-translation">Tam beklediğim gibi sınav zordu.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">similar to</td><td data-label="Türkçe anlam">-e benzer</td><td data-label="Kalıp / kullanım"><code>+ isim / zamir</code></td><td data-label="Örnek">This method is similar to the old one.<span class="cj-translation">Bu yöntem eskisine benziyor.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">as ... as</td><td data-label="Türkçe anlam">... kadar ...</td><td data-label="Kalıp / kullanım"><code>as + sıfat / zarf + as</code></td><td data-label="Örnek">This is as good as that one.<span class="cj-translation">Bu, diğeri kadar iyi.</span></td></tr>
+          <tr class="cj-entry"><td data-label="Bağlaç / ifade">the same ... as</td><td data-label="Türkçe anlam">... ile aynı</td><td data-label="Kalıp / kullanım"><code>the same + isim + as</code></td><td data-label="Örnek">She has the same bag as me.<span class="cj-translation">Benimkiyle aynı çantaya sahip.</span></td></tr>
+        </tbody>
       </table></div>
     `
   },
