@@ -269,7 +269,7 @@
         sets.push({
           id: s.id || "kelime-seti-" + i, title: s.name, langs: ["İngilizce", "Türkçe"],
           terms: s.items.map(function (v) {
-            return { term: v.en, def: v.tr, example: v.note || "" };
+            return { term: v.en, def: v.tr, example: v.note || "", note: v.note || "" };
           })
         });
       }
@@ -822,6 +822,12 @@
      sonraki turda yazılı sorulur; ikisi de doğruysa "öğrenildi" sayılır. */
   var LEARN_ROUND = 7;
 
+  function learnNoteHtml(t) {
+    return t.note
+      ? '<div class="learn-note"><span>Not</span>' + esc(t.note) + "</div>"
+      : "";
+  }
+
   function renderLearnMode(setId) {
     var s = getSet(setId);
     if (!s) { location.hash = "#/"; return; }
@@ -919,6 +925,7 @@
         '<div class="q-label">Terim</div>' +
         '<div class="q-row"><div class="q-word">' + esc(t.term) + "</div>" +
         '<button class="icon-btn" id="q-speak" title="Sesli oku">' + I.audio + "</button></div>" +
+        learnNoteHtml(t) +
         '<div id="learn-feedback"></div>' +
         '<div class="q-prompt">Doğru tanımı seç</div>' +
         '<div class="opt-grid">' + opts.map(function (oi, n) {
@@ -1024,11 +1031,12 @@
             (match.typo
               ? "Doğru kabul edildi. Doğru yazımı: <strong>" + esc(match.answer) + "</strong>"
               : (isCorrectAnswer(given, t.term) ? "Harikasın!" :
-                "Harikasın! Bu eş anlamlı cevap da kabul edildi: " + esc(given))) + "</div>";
+                "Harikasın! Bu eş anlamlı cevap da kabul edildi: " + esc(given))) + "</div>" +
+            learnNoteHtml(t);
           speak(t.term);
           persistState();
           updateProgress();
-          setTimeout(ask, match.typo ? 2200 : 1000);
+          setTimeout(ask, match.typo || t.note ? 2200 : 1000);
         } else {
           wrongCount++;
           addMiss(s.id, ti);
@@ -1043,6 +1051,7 @@
             '<div class="ans-label">' + (validAnswers.length > 1 ? "Kabul edilen cevaplar" : "Doğru cevap") +
             '</div><div class="ans-box ok">' + esc(acceptedAnswerText(s, ti)) +
             ' <button class="icon-btn small" id="ans-speak" title="Sesli oku">' + I.audio + "</button></div>" +
+            learnNoteHtml(t) +
             '<div class="btn-row" style="justify-content:flex-start;margin-top:1.25rem">' +
             '<button class="btn primary" id="learn-cont">Devam et <kbd class="key-hint">Enter / →</kbd></button></div>';
           speak(t.term); // doğru cevabı otomatik seslendir

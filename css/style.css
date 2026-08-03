@@ -534,6 +534,24 @@ body.mode-open main { padding: 0; }
 .feedback-msg { font-weight: 700; margin-bottom: 1rem; font-size: 1.05rem; }
 .feedback-msg.ok { color: var(--green); }
 .feedback-msg.no { color: var(--red); }
+.learn-note {
+  margin: 0 0 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--gray);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+.learn-note span {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--indigo);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 
 /* ---- Test ---- */
 .test-q {
