@@ -264,6 +264,16 @@
         });
       }
     });
+    (D.wordSets || []).forEach(function (s, i) {
+      if (s.items && s.items.length) {
+        sets.push({
+          id: s.id || "kelime-seti-" + i, title: s.name, langs: ["İngilizce", "Türkçe"],
+          terms: s.items.map(function (v) {
+            return { term: v.en, def: v.tr, example: v.note || "" };
+          })
+        });
+      }
+    });
     return sets;
   }
   var SETS = buildSets();
