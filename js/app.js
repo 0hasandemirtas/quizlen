@@ -1003,6 +1003,7 @@
       inner.innerHTML = '<div class="learn-card">' +
         '<div class="q-label">' + (isReview ? "Tekrar · Tanım" : "Tanım") + "</div>" +
         '<div class="q-word">' + esc(t.def) + "</div>" +
+        learnNoteHtml(t) +
         '<div id="learn-feedback"></div>' +
         '<div class="q-prompt">Cevabını yaz (' + esc(s.langs[0]) + ")</div>" +
         '<form class="learn-form" id="learn-form" autocomplete="off">' +
@@ -1031,8 +1032,7 @@
             (match.typo
               ? "Doğru kabul edildi. Doğru yazımı: <strong>" + esc(match.answer) + "</strong>"
               : (isCorrectAnswer(given, t.term) ? "Harikasın!" :
-                "Harikasın! Bu eş anlamlı cevap da kabul edildi: " + esc(given))) + "</div>" +
-            learnNoteHtml(t);
+                "Harikasın! Bu eş anlamlı cevap da kabul edildi: " + esc(given))) + "</div>";
           speak(t.term);
           persistState();
           updateProgress();
@@ -1051,7 +1051,6 @@
             '<div class="ans-label">' + (validAnswers.length > 1 ? "Kabul edilen cevaplar" : "Doğru cevap") +
             '</div><div class="ans-box ok">' + esc(acceptedAnswerText(s, ti)) +
             ' <button class="icon-btn small" id="ans-speak" title="Sesli oku">' + I.audio + "</button></div>" +
-            learnNoteHtml(t) +
             '<div class="btn-row" style="justify-content:flex-start;margin-top:1.25rem">' +
             '<button class="btn primary" id="learn-cont">Devam et <kbd class="key-hint">Enter / →</kbd></button></div>';
           speak(t.term); // doğru cevabı otomatik seslendir
