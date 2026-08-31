@@ -274,9 +274,28 @@
         });
       }
     });
+    (D.posterVocabulary || []).forEach(function (group) {
+      if (!group.items || !group.items.length) return;
+      for (var start = 0; start < group.items.length; start += 12) {
+        var packNo = Math.floor(start / 12) + 1;
+        var packLabel = packNo < 10 ? "0" + packNo : String(packNo);
+        sets.push({
+          id: "poster-" + group.id + "-" + packLabel,
+          title: "Poster " + group.name + " · Paket " + packLabel,
+          langs: ["İngilizce", "Türkçe"],
+          group: "poster",
+          posterCategory: group.name,
+          terms: group.items.slice(start, start + 12).map(function (v) {
+            return { term: v.en, def: v.tr, example: "" };
+          })
+        });
+      }
+    });
     return sets;
   }
   var SETS = buildSets();
+  var POSTER_SETS = SETS.filter(function (s) { return s.group === "poster"; });
+  var CORE_SETS = SETS.filter(function (s) { return s.group !== "poster"; });
 
   function getSet(id) {
     for (var i = 0; i < SETS.length; i++) if (SETS[i].id === id) return SETS[i];
@@ -352,13 +371,16 @@
     var html = "";
     html += '<a class="side-link' + (active === "home" ? " active" : "") + '" href="#/">' + I.home + "Ana sayfa</a>";
     html += '<a class="side-link' + (active === "library" ? " active" : "") + '" href="#/kitaplik">' + I.library + "Kitaplığın</a>";
+    if (POSTER_SETS.length) {
+      html += '<a class="side-link' + (active === "posters" ? " active" : "") + '" href="#/posterler">' + I.cards + "Poster kelimeleri</a>";
+    }
     html += '<a class="side-link' + (active === "progress" ? " active" : "") + '" href="#/ilerleme">' + I.progress + "İlerlemen</a>";
     html += '<a class="side-link' + (active === "course" ? " active" : "") + '" href="#/kurs">' + I.tasks + "Kurs ilerlemesi</a>";
     html += '<a class="side-link' + (active === "grammar" ? " active" : "") + '" href="#/gramer">' + I.grammar + "Gramer notları</a>";
     html += '<a class="side-link' + (active === "quiz" ? " active" : "") + '" href="#/quiz">' + I.test + "Quiz</a>";
     html += '<hr class="side-divider" />';
     html += '<div class="side-label">Setlerin</div>';
-    SETS.forEach(function (s) {
+    CORE_SETS.forEach(function (s) {
       html += '<a class="side-link' + (active === "set:" + s.id ? " active" : "") + '" href="#/set/' + s.id + '">' + I.cards + esc(s.title) + "</a>";
     });
     $("#sidebar").innerHTML = html;
@@ -397,7 +419,7 @@
   }
 
   function renderHome(filter) {
-    var list = SETS;
+    var list = filter ? SETS : CORE_SETS;
     if (filter) {
       var f = filter.toLocaleLowerCase("tr");
       list = SETS.filter(function (s) { return s.title.toLocaleLowerCase("tr").indexOf(f) !== -1; });
@@ -406,8 +428,19 @@
     html += '<div class="section-title">' + (filter ? '"' + esc(filter) + '" için sonuçlar' : "Son çalışılanlar") + "</div>";
     html += '<div class="set-grid">' + (list.length ? list.map(setCardHtml).join("") : '<p class="empty-note">Sonuç bulunamadı.</p>') + "</div>";
     if (!filter) {
+      if (POSTER_SETS.length) {
+        var featured = [], featuredCategories = {};
+        POSTER_SETS.forEach(function (s) {
+          if (!featuredCategories[s.posterCategory]) {
+            featuredCategories[s.posterCategory] = true;
+            featured.push(s);
+          }
+        });
+        html += '<div class="section-title">Poster kelime paketleri</div>';
+        html += '<div class="set-grid">' + featured.map(setCardHtml).join("") + "</div>";
+      }
       html += '<div class="section-title">Popüler flash kart setleri</div>';
-      html += '<div class="set-grid">' + shuffle(SETS).slice(0, 4).map(setCardHtml).join("") + "</div>";
+      html += '<div class="set-grid">' + shuffle(CORE_SETS).slice(0, 4).map(setCardHtml).join("") + "</div>";
     }
     html += "</div>";
     setPage(html, { side: filter ? "" : "home" });
@@ -416,9 +449,25 @@
   function renderLibrary() {
     var html = '<div class="container-wide">';
     html += '<h1 class="page-title">Kitaplığın</h1>';
-    html += '<div class="section-title">Flash kart setleri (' + SETS.length + ")</div>";
-    html += '<div class="set-grid">' + SETS.map(setCardHtml).join("") + "</div></div>";
+    html += '<div class="section-title">Flash kart setleri (' + CORE_SETS.length + ")</div>";
+    html += '<div class="set-grid">' + CORE_SETS.map(setCardHtml).join("") + "</div></div>";
     setPage(html, { side: "library" });
+  }
+
+  function renderPosterSets() {
+    var html = '<div class="container-wide">';
+    html += '<h1 class="page-title">Poster Kelimeleri</h1>';
+    html += '<p class="prog-desc">Kelimeler 12\'li çalışma paketlerine ayrıldı. Her paketi kart, öğren, test ve eşleştirme modlarında çalışabilirsin.</p>';
+    var categories = {};
+    POSTER_SETS.forEach(function (s) {
+      (categories[s.posterCategory] = categories[s.posterCategory] || []).push(s);
+    });
+    Object.keys(categories).forEach(function (category) {
+      html += '<div class="section-title">' + esc(category) + " · " + categories[category].length + " paket</div>";
+      html += '<div class="set-grid">' + categories[category].map(setCardHtml).join("") + "</div>";
+    });
+    html += "</div>";
+    setPage(html, { side: "posters" });
   }
 
   /* ================= SET SAYFASI ================= */
@@ -1683,6 +1732,7 @@
 
     if (!parts.length) { renderHome(); return; }
     if (parts[0] === "kitaplik") { renderLibrary(); return; }
+    if (parts[0] === "posterler") { renderPosterSets(); return; }
     if (parts[0] === "ilerleme") { renderProgress(); return; }
     if (parts[0] === "kurs") { renderCourse(); return; }
     if (parts[0] === "gramer") { renderGrammar(); return; }
