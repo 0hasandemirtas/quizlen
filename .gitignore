@@ -1,3 +1,12 @@
 image*.png
 *.pdf
 not*.jpeg
+
+.android-tools/
+android/.gradle/
+android/**/build/
+android/local.properties
+android/signing.properties
+android/keystore/
+releases/
+node_modules/

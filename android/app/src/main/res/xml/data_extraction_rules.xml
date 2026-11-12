@@ -1,0 +1,1 @@
+<data-extraction-rules><cloud-backup><include domain="sharedpref" path="quizlen_data.xml" /></cloud-backup><device-transfer><include domain="sharedpref" path="quizlen_data.xml" /></device-transfer></data-extraction-rules>

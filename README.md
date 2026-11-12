@@ -20,3 +20,7 @@ Projeyi kullanırken:
 - iki ayrı profille çalışma ilerlemesini birbirinden bağımsız tutabiliyorum.
 
 
+
+## Android APK
+
+APK kurulum, veri yedekleme ve yeni sürüm üretme adımları: [ANDROID.md](ANDROID.md).

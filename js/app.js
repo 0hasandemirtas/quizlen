@@ -26,23 +26,23 @@
   var GLOBAL_KEYS = { theme: 1 };
   function activeProfile() {
     var p = null;
-    try { p = localStorage.getItem("qz_profile"); } catch (e) {}
+    try { p = QuizlenStorage.getItem("qz_profile"); } catch (e) {}
     return PROFILES[p] ? p : "hasan";
   }
   function setActiveProfile(p) {
-    try { localStorage.setItem("qz_profile", p); } catch (e) {}
+    try { QuizlenStorage.setItem("qz_profile", p); } catch (e) {}
   }
   var store = {
     get: function (k, d) {
       var profile = activeProfile();
       var key = (GLOBAL_KEYS[k] || profile === "hasan") ? k : profile + "_" + k;
-      try { var v = JSON.parse(localStorage.getItem("qz_" + key)); return v == null ? d : v; }
+      try { var v = JSON.parse(QuizlenStorage.getItem("qz_" + key)); return v == null ? d : v; }
       catch (e) { return d; }
     },
     set: function (k, v) {
       var profile = activeProfile();
       var key = (GLOBAL_KEYS[k] || profile === "hasan") ? k : profile + "_" + k;
-      try { localStorage.setItem("qz_" + key, JSON.stringify(v)); } catch (e) {}
+      try { QuizlenStorage.setItem("qz_" + key, JSON.stringify(v)); } catch (e) {}
     }
   };
   /* Sesli okuma: önce tarayıcının kendi İngilizce sesi denenir;
@@ -61,6 +61,7 @@
   }
   var ttsAudio = null;
   function speak(text, lang) {
+    if (window.QuizlenAndroid) { window.QuizlenAndroid.speak(String(text)); return; }
     lang = (lang || "en-US").split("-")[0];
     if (window.speechSynthesis && enVoice) {
       window.speechSynthesis.cancel();
@@ -76,7 +77,9 @@
       if (ttsAudio) { ttsAudio.pause(); ttsAudio.currentTime = 0; }
       ttsAudio = new Audio("https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=" +
         lang + "&q=" + encodeURIComponent(text));
-      ttsAudio.play();
+      // Yeni ses öncekini kestiğinde play() reddedilir; bu beklenen bir durum.
+      var playing = ttsAudio.play();
+      if (playing && playing.catch) playing.catch(function () {});
     } catch (e) {}
   }
 
@@ -294,6 +297,8 @@
     return sets;
   }
   var SETS = buildSets();
+  try { window.quizlenMigrateProgress(QuizlenStorage, SETS); }
+  catch (e) { alert("İlerleme güncellenemedi. Veriler korunuyor; önce Yedek ekranından yedek alın. " + e.message); }
   var POSTER_SETS = SETS.filter(function (s) { return s.group === "poster"; });
   var CORE_SETS = SETS.filter(function (s) { return s.group !== "poster"; });
 
@@ -356,6 +361,47 @@
     store.set(goodKey(setId), g);
   }
 
+  /* ---------- Set tamamlama ----------
+     Öğren modu bitince "done_<set>" kaydı tutulur (kaç kez, en son ne zaman).
+     Bu özellikten önce bitirilen setler de görünsün diye: Öğren'i bitirmek her
+     kelimeye en az bir yardımsız doğru kazandırdığından, tüm kelimelerinde doğru
+     serisi olan set de tamamlanmış sayılır. */
+  function doneKey(setId) { return "done_" + setId; }
+  function markSetDone(setId) {
+    var d = store.get(doneKey(setId), null) || {};
+    store.set(doneKey(setId), { times: (d.times || 0) + 1, at: Date.now() });
+  }
+  function setStatus(s) {
+    var good = getGood(s.id);
+    var learn = store.get("learn_" + s.id, null);
+    var learned = 0;
+    s.terms.forEach(function (_, i) {
+      var st = learn && learn.stage ? learnStageValue(learn.stage[i], learn.v) : 0;
+      if ((good[i] || 0) > 0 || st === LEARN_DONE) learned++;
+    });
+    var record = store.get(doneKey(s.id), null);
+    var total = s.terms.length;
+    return {
+      done: !!record || (total > 0 && learned === total),
+      record: record,
+      learned: learned,
+      total: total
+    };
+  }
+  function setStatusHtml(s) {
+    var st = setStatus(s);
+    if (st.done) {
+      var when = st.record && st.record.at ? new Date(st.record.at).toLocaleDateString("tr-TR") : "";
+      return '<span class="done-badge" title="' + (when ? "Son bitirme: " + when : "Daha önce bitirildi") + '">✓ Tamamlandı' +
+        (st.record && st.record.times > 1 ? " · " + st.record.times + "×" : "") + "</span>";
+    }
+    if (st.learned) {
+      return '<span class="progress-badge">' + st.learned + "/" + st.total + " öğrenildi</span>" +
+        '<div class="set-progress"><div style="width:' + Math.round(st.learned / st.total * 100) + '%"></div></div>';
+    }
+    return "";
+  }
+
   /* ---------- Yıldızlar ---------- */
   function starKey(setId) { return "stars_" + setId; }
   function isStarred(setId, i) { return (store.get(starKey(setId), [])).indexOf(i) !== -1; }
@@ -367,6 +413,37 @@
   }
 
   /* ---------- Kenar menüsü ---------- */
+  var menuToggle = $("#menu-toggle");
+  var menuBackdrop = $("#menu-backdrop");
+  function setMenuOpen(open, restoreFocus) {
+    open = open && window.matchMedia("(max-width: 900px)").matches;
+    document.body.classList.toggle("menu-open", open);
+    menuToggle.setAttribute("aria-expanded", String(open));
+    menuToggle.setAttribute("aria-label", open ? "Menüyü kapat" : "Menüyü aç");
+    menuBackdrop.hidden = !open;
+    if (open) {
+      var firstLink = $("#sidebar a");
+      if (firstLink) firstLink.focus();
+    } else if (restoreFocus) menuToggle.focus();
+  }
+  window.quizlenCloseMenu = function () {
+    if (!document.body.classList.contains("menu-open")) return false;
+    setMenuOpen(false, true);
+    return true;
+  };
+  menuToggle.addEventListener("click", function () {
+    setMenuOpen(!document.body.classList.contains("menu-open"), true);
+  });
+  menuBackdrop.addEventListener("click", window.quizlenCloseMenu);
+  $("#sidebar").addEventListener("click", function (event) {
+    if (event.target.closest("a")) setMenuOpen(false, true);
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && window.quizlenCloseMenu()) event.preventDefault();
+  });
+  window.addEventListener("resize", function () {
+    if (!window.matchMedia("(max-width: 900px)").matches) setMenuOpen(false, false);
+  });
   function renderSidebar(active) {
     var html = "";
     html += '<a class="side-link' + (active === "home" ? " active" : "") + '" href="#/">' + I.home + "Ana sayfa</a>";
@@ -378,6 +455,7 @@
     html += '<a class="side-link' + (active === "course" ? " active" : "") + '" href="#/kurs">' + I.tasks + "Kurs ilerlemesi</a>";
     html += '<a class="side-link' + (active === "grammar" ? " active" : "") + '" href="#/gramer">' + I.grammar + "Gramer notları</a>";
     html += '<a class="side-link' + (active === "quiz" ? " active" : "") + '" href="#/quiz">' + I.test + "Quiz</a>";
+    html += '<a class="side-link" href="#/yedek">' + I.undo + "Yedekleme</a>";
     html += '<hr class="side-divider" />';
     html += '<div class="side-label">Setlerin</div>';
     CORE_SETS.forEach(function (s) {
@@ -390,9 +468,35 @@
   var view = $("#view");
   var keyHandler = null; // aktif sayfanın klavye dinleyicisi
   var matchTimerId = null;
+  var pageTimeouts = [];
+  var pagePauseHandler = null;
+  var background = false;
+  function pageTimeout(fn, delay) {
+    var id = setTimeout(function () {
+      pageTimeouts = pageTimeouts.filter(function (value) { return value !== id; });
+      fn();
+    }, delay);
+    pageTimeouts.push(id);
+    return id;
+  }
+  window.quizlenSetBackground = function (hidden) {
+    if (background === hidden) return;
+    background = hidden;
+    document.documentElement.classList.toggle('app-background', hidden);
+    if (hidden) {
+      if (window.speechSynthesis) window.speechSynthesis.cancel();
+      if (ttsAudio) ttsAudio.pause();
+    }
+    if (pagePauseHandler) pagePauseHandler(hidden);
+  };
+  document.addEventListener('visibilitychange', function () { window.quizlenSetBackground(document.hidden); });
 
   function setPage(html, opts) {
     opts = opts || {};
+    setMenuOpen(false, false);
+    pageTimeouts.forEach(clearTimeout);
+    pageTimeouts = [];
+    pagePauseHandler = null;
     if (matchTimerId) { clearInterval(matchTimerId); matchTimerId = null; }
     keyHandler = null;
     document.body.classList.toggle("mode-open", !!opts.mode);
@@ -412,9 +516,10 @@
 
   /* ================= ANA SAYFA / KİTAPLIK ================= */
   function setCardHtml(s) {
-    return '<a class="set-card" href="#/set/' + s.id + '">' +
+    var status = setStatusHtml(s);
+    return '<a class="set-card' + (status.indexOf("done-badge") !== -1 ? " done" : "") + '" href="#/set/' + s.id + '">' +
       "<h3>" + esc(s.title) + "</h3>" +
-      '<span class="term-badge">' + s.terms.length + " terim</span>" +
+      '<div class="badge-row"><span class="term-badge">' + s.terms.length + " terim</span>" + status + "</div>" +
       '<div class="author"><span class="avatar">H</span> hasan</div></a>';
   }
 
@@ -463,7 +568,9 @@
       (categories[s.posterCategory] = categories[s.posterCategory] || []).push(s);
     });
     Object.keys(categories).forEach(function (category) {
-      html += '<div class="section-title">' + esc(category) + " · " + categories[category].length + " paket</div>";
+      var doneCount = categories[category].filter(function (s) { return setStatus(s).done; }).length;
+      html += '<div class="section-title">' + esc(category) + " · " + categories[category].length + " paket" +
+        ' <span class="done-count">(' + doneCount + " tamamlandı)</span></div>";
       html += '<div class="set-grid">' + categories[category].map(setCardHtml).join("") + "</div>";
     });
     html += "</div>";
@@ -594,7 +701,7 @@
       card.classList.remove("flipped");
       fcState.flipped = false;
       // Çevirme animasyonu içerik değişimini göstermesin diye küçük gecikme
-      setTimeout(function () {
+      pageTimeout(function () {
         $("#fc-front").textContent = t.term;
         $("#fc-back").textContent = t.def;
         $("#fc-example").textContent = t.example || "";
@@ -724,7 +831,7 @@
         void stageEl.offsetWidth; // animasyonu yeniden tetikle
         stageEl.classList.add(anim);
       }
-      setTimeout(function () {
+      pageTimeout(function () {
         $("#fc-front").textContent = t.term;
         $("#fc-back").textContent = t.def;
         $("#fc-example").textContent = t.example || "";
@@ -867,14 +974,75 @@
   }
 
   /* ================= ÖĞREN MODU ================= */
-  /* Quizlet Öğren: turlar halinde ilerler. Bir terim önce çoktan seçmeli,
-     sonraki turda yazılı sorulur; ikisi de doğruysa "öğrenildi" sayılır. */
+  /* Öğren turlar halinde ilerler. Her terim dört aşamadan geçer:
+     0 anlamını seç (İngilizce → Türkçe), 1 İngilizcesini seç (Türkçe → İngilizce),
+     2 ipucuyla yaz, 3 kendin hatırla; 4 = bu oturumda tamamlandı.
+     Doğru cevaplanan terim bir sonraki karşılaşmada sonraki aşamadan sorulur. */
   var LEARN_ROUND = 7;
+  var LEARN_VERSION = 2;
+  var LEARN_DONE = 4;
+  var LEARN_STAGES = ["Anlamını seç", "İngilizcesini seç", "İpucuyla yaz", "Kendin hatırla"];
+
+  /* Sürümsüz eski kayıtlarda 0 yeni, 1 şıkta bilindi, 2 öğrenildi demekti. */
+  function learnStageValue(value, version) {
+    value = Number(value);
+    if (version !== LEARN_VERSION) return value === 2 ? LEARN_DONE : (value === 1 ? 1 : 0);
+    return value >= 0 && value <= LEARN_DONE && value % 1 === 0 ? value : 0;
+  }
 
   function learnNoteHtml(t) {
     return t.note
       ? '<div class="learn-note"><span>Not</span>' + esc(t.note) + "</div>"
       : "";
+  }
+
+  /* Şıklı sorularda tek doğru cevap olsun: İngilizce tarafı ya da Türkçe
+     anlamı (parantez dışındaki "/", "," veya ";" ile ayrılmış parçalardan biri)
+     doğru cevapla örtüşen terimler yanlış şık olarak kullanılmaz. */
+  function meaningParts(text, lang) {
+    var full = String(text || "").trim().toLocaleLowerCase(lang).replace(/\s+/g, " ");
+    var parts = full.replace(/\([^)]*\)/g, " ").split(lang === "en" ? /\// : /[\/,;]/)
+      .map(function (part) {
+        part = part.trim().replace(/\s+/g, " ");
+        return lang === "en" && part.indexOf("to ") === 0 ? part.slice(3) : part;
+      }).filter(Boolean);
+    return parts.length ? parts : [full];
+  }
+  function learnChoiceIndices(s, ti, limit) {
+    function parts(i) { return { en: meaningParts(s.terms[i].term, "en"), tr: meaningParts(s.terms[i].def, "tr") }; }
+    function shares(a, b) { return a.some(function (part) { return b.indexOf(part) !== -1; }); }
+    var picked = [ti], taken = [parts(ti)];
+    shuffle(s.terms.map(function (_, i) { return i; })).forEach(function (i) {
+      if (i === ti || picked.length > limit) return;
+      var p = parts(i);
+      if (taken.some(function (q) { return shares(p.en, q.en) || shares(p.tr, q.tr); })) return;
+      picked.push(i);
+      taken.push(p);
+    });
+    return shuffle(picked);
+  }
+
+  /* Harf ipucu: yalnızca harf ve rakamlar gizlenir; boşluk ve noktalama
+     olduğu gibi görünür. Baştaki "to " zaten açık gösterilir. */
+  var HINT_LETTER = /[A-Za-z0-9À-ɏ]/;
+  function letterHint(term, shown) {
+    var text = String(term || "").split("/")[0].trim().replace(/\s+/g, " ");
+    var fixed = /^to \S/i.test(text) ? 3 : 0;
+    var words = [], current = "", mask = "", letters = 0;
+    for (var i = 0; i < text.length; i++) {
+      var ch = text.charAt(i);
+      if (ch === " ") { words.push(current); current = ""; mask += " "; continue; }
+      var hidden = false;
+      if (i >= fixed && HINT_LETTER.test(ch)) { letters++; hidden = letters > shown; }
+      mask += hidden ? "_" : ch;
+      current += hidden ? '<span class="hint-ch"></span>' : '<span class="hint-ch open">' + esc(ch) + "</span>";
+    }
+    words.push(current);
+    return {
+      html: words.map(function (w) { return '<span class="hint-word">' + w + "</span>"; }).join(""),
+      mask: mask,
+      letters: letters
+    };
   }
 
   function renderLearnMode(setId) {
@@ -890,33 +1058,38 @@
       return;
     }
 
-    // Tam set çalışırken ilerleme localStorage'a kaydedilir; sayfa yenilense de
+    // Tam set çalışırken ilerleme kaydedilir; sayfa yenilense de
     // set bitene kadar kaldığın yerden devam edersin.
     var persist = !!(opts && opts.persist);
     var saveKey = "learn_" + s.id;
 
-    var order, stage, wrongCount, roundNum;
+    var order, stage, stats, roundNum;
     var saved = persist ? store.get(saveKey, null) : null;
     if (saved && saved.order && saved.order.length) {
       // Silinen kelimeleri çıkar, sonradan eklenenleri sona ekle
       order = saved.order.filter(function (i) { return i >= 0 && i < s.terms.length; });
       indices.forEach(function (i) { if (order.indexOf(i) === -1) order.push(i); });
-      stage = saved.stage || {};
-      order.forEach(function (i) { if (stage[i] !== 1 && stage[i] !== 2) stage[i] = 0; });
-      wrongCount = saved.wrong || 0;
+      stage = {};
+      order.forEach(function (i) { stage[i] = learnStageValue(saved.stage && saved.stage[i], saved.v); });
+      stats = { wrong: saved.wrong || 0, hinted: saved.hinted || 0, unaided: saved.unaided || 0, revealed: saved.revealed || 0 };
       roundNum = saved.round || 0;
     } else {
       order = shuffle(indices.slice());
-      stage = {}; // 0: yeni, 1: çoktan seçmeli bilindi, 2: yazılı da bilindi (öğrenildi)
+      stage = {};
       order.forEach(function (i) { stage[i] = 0; });
-      wrongCount = 0;
+      stats = { wrong: 0, hinted: 0, unaided: 0, revealed: 0 };
       roundNum = 0;
     }
     var total = order.length;
     var queue = [];
+    var seen = [];       // bu turda sorulan terimler
+    var roundStats = null;
 
     function persistState() {
-      if (persist) store.set(saveKey, { order: order, stage: stage, wrong: wrongCount, round: roundNum });
+      if (persist) store.set(saveKey, {
+        v: LEARN_VERSION, order: order, stage: stage, round: roundNum,
+        wrong: stats.wrong, hinted: stats.hinted, unaided: stats.unaided, revealed: stats.revealed
+      });
     }
     function clearState() {
       if (persist) store.set(saveKey, null);
@@ -926,29 +1099,31 @@
       '<div class="mode-body"><div class="mode-inner" id="learn-inner"></div></div></div>', { mode: true });
 
     function counts() {
-      var c = [0, 0, 0];
+      var c = [0, 0, 0, 0, 0];
       order.forEach(function (i) { c[stage[i]]++; });
       return c;
     }
     function updateProgress() {
       var sum = 0;
       order.forEach(function (i) { sum += stage[i]; });
-      setProgress((sum / (total * 2)) * 100);
+      setProgress((sum / (total * LEARN_DONE)) * 100);
     }
 
     function startRound() {
-      queue = order.filter(function (i) { return stage[i] < 2; }).slice(0, LEARN_ROUND);
-      // Aralıklı tekrar: bitirilen ama henüz kesin öğrenilmemiş (3 kez üst üste
-      // doğru bilinmemiş) kelimelerden en fazla 2'si araya serpiştirilir
+      queue = order.filter(function (i) { return stage[i] < LEARN_DONE; }).slice(0, LEARN_ROUND);
+      // Aralıklı tekrar: tamamlanan ama henüz kesin öğrenilmemiş (3 kez üst üste
+      // yardımsız doğru yazılmamış) kelimelerden en fazla 2'si araya serpiştirilir
       if (queue.length) {
         var good = getGood(s.id);
         var review = shuffle(order.filter(function (i) {
-          return stage[i] === 2 && (good[i] || 0) < MASTERED_AT;
+          return stage[i] === LEARN_DONE && (good[i] || 0) < MASTERED_AT;
         })).slice(0, 2);
         review.forEach(function (i) {
           queue.splice(1 + Math.floor(Math.random() * queue.length), 0, i);
         });
       }
+      seen = [];
+      roundStats = { unaided: 0, hinted: 0, missed: 0 };
       roundNum++;
       persistState();
       ask();
@@ -957,79 +1132,135 @@
     function ask() {
       updateProgress();
       if (!queue.length) {
-        if (counts()[2] === total) finish(); else checkpoint();
+        if (counts()[LEARN_DONE] === total) finish(); else checkpoint();
         return;
       }
       var ti = queue[0];
-      if (stage[ti] === 0) askMC(ti); else askWritten(ti);
+      if (seen.indexOf(ti) === -1) seen.push(ti);
+      if (stage[ti] < 2) askChoice(ti); else askWritten(ti);
     }
 
-    function askMC(ti) {
+    /* Zorlanılan terim turun sonuna alınır. Turda başka terim kalmadıysa
+       aynı terim hemen tekrar gelmesin diye araya başka bir terim eklenir. */
+    function requeue(ti) {
+      queue.shift();
+      if (!queue.length) {
+        var others = order.filter(function (i) { return i !== ti && stage[i] < LEARN_DONE; });
+        var fresh = others.filter(function (i) { return seen.indexOf(i) === -1; });
+        var filler = (fresh.length ? fresh : others)[0];
+        if (filler != null) queue.push(filler);
+      }
+      queue.push(ti);
+    }
+
+    function stageHtml(ti) {
+      var review = stage[ti] === LEARN_DONE;
+      var step = review ? 3 : stage[ti];
+      return '<div class="learn-stage" data-stage="' + stage[ti] + '">' +
+        '<ol class="learn-steps" aria-hidden="true">' + LEARN_STAGES.map(function (_, n) {
+          return '<li class="' + (n < step ? "done" : (n === step ? "current" : "")) + '"></li>';
+        }).join("") + "</ol>" +
+        '<span class="learn-stage-name">' + (review ? "Tekrar" : (step + 1) + "/4") +
+        " · " + LEARN_STAGES[step] + "</span></div>";
+    }
+
+    // Yanlış cevap ve "Bilmiyorum" sonrası: doğrusu görünür ve seslendirilir;
+    // "Devam et" ile kapanır.
+    function showAnswer(ti, message, given, label, answer) {
       var t = s.terms[ti];
-      var others = distractorIndices(s, ti, Math.min(4, s.terms.length) - 1);
-      var opts = shuffle([ti].concat(others));
+      $("#learn-feedback").innerHTML = '<div class="feedback-msg no">' + message + "</div>" +
+        (given ? '<div class="ans-label">Senin cevabın</div><div class="ans-box no">' + esc(given) + "</div>" : "") +
+        '<div class="ans-label">' + label + '</div><div class="ans-box ok">' + esc(answer) +
+        ' <button class="icon-btn small" id="ans-speak" title="Sesli oku">' + I.audio + "</button></div>" +
+        '<div class="btn-row" style="justify-content:flex-start;margin-top:1.25rem">' +
+        '<button class="btn primary" id="learn-cont">Devam et <kbd class="key-hint">Enter / →</kbd></button></div>';
+      speak(t.term);
+      $("#ans-speak").addEventListener("click", function () { speak(t.term); });
+      persistState();
+      updateProgress();
+      var went = false;
+      var shownAt = Date.now();
+      function cont() { if (went) return; went = true; ask(); }
+      $("#learn-cont").addEventListener("click", cont);
+      // Cevabı gönderen Enter'ın (basılı tutma/çift basma) ekranı hemen geçmemesi için
+      // kısa bir bekleme süresi ve tuş tekrarı koruması
+      keyHandler = function (e) {
+        if ((e.key === "Enter" || e.key === "ArrowRight") &&
+            !e.repeat && Date.now() - shownAt > 500) cont();
+      };
+    }
+
+    function askChoice(ti) {
+      var t = s.terms[ti];
+      var reverse = stage[ti] === 1;
+      var opts = learnChoiceIndices(s, ti, 3);
+      function optText(i) { return reverse ? s.terms[i].term : s.terms[i].def; }
 
       var inner = $("#learn-inner");
-      inner.innerHTML = '<div class="learn-card">' +
-        '<div class="q-label">Terim</div>' +
-        '<div class="q-row"><div class="q-word">' + esc(t.term) + "</div>" +
-        '<button class="icon-btn" id="q-speak" title="Sesli oku">' + I.audio + "</button></div>" +
+      inner.innerHTML = '<div class="learn-card">' + stageHtml(ti) +
+        '<div class="q-label">' + (reverse ? "Türkçe anlamı" : "İngilizce terim") + "</div>" +
+        '<div class="q-row"><div class="q-word">' + esc(reverse ? t.def : t.term) + "</div>" +
+        (reverse ? "" : '<button class="icon-btn" id="q-speak" title="Sesli oku">' + I.audio + "</button>") + "</div>" +
         learnNoteHtml(t) +
         '<div id="learn-feedback"></div>' +
-        '<div class="q-prompt">Doğru tanımı seç</div>' +
+        '<div class="q-prompt">' + (reverse ? "İngilizcesini seç" : "Türkçe anlamını seç") + "</div>" +
         '<div class="opt-grid">' + opts.map(function (oi, n) {
-          return '<button class="opt-btn" data-opt="' + oi + '"><span class="opt-num">' + (n + 1) + "</span>" + esc(s.terms[oi].def) + "</button>";
+          return '<button class="opt-btn" data-opt="' + oi + '"><span class="opt-num">' + (n + 1) + "</span>" + esc(optText(oi)) + "</button>";
         }).join("") + "</div>" +
         '<div class="btn-row" style="justify-content:flex-start;margin-top:1rem">' +
         '<button class="btn ghost" id="mc-skip">Bilmiyorum <kbd class="key-hint">↓</kbd></button></div></div>';
 
       var answered = false;
-      function choose(btn) {
-        if (answered) return;
-        answered = true;
-        var oi = +btn.dataset.opt;
-        $$(".opt-btn", inner).forEach(function (b) { b.disabled = true; });
-        if (oi === ti) {
-          btn.classList.add("correct");
-          $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">Doğru! Sonraki turda bunu yazman istenecek.</div>';
-          stage[ti] = 1;
-          decMiss(s.id, ti);
-          addHit(s.id, ti);
-          queue.shift();
-          setTimeout(ask, 900);
-        } else {
-          btn.classList.add("wrong");
-          wrongCount++;
-          addMiss(s.id, ti);
-          resetHit(s.id, ti);
-          $$('.opt-btn[data-opt="' + ti + '"]', inner)[0].classList.add("correct");
-          $("#learn-feedback").innerHTML = '<div class="feedback-msg no">Öğrenmek hata yapmaktır — doğrusu işaretlendi.</div>';
-          queue.push(queue.shift()); // turun sonunda tekrar sorulsun
-          setTimeout(ask, 2200);
-        }
-        persistState();
-        updateProgress();
-      }
-      speak(t.term); // soru gelince kelimeyi otomatik seslendir
-      $("#q-speak").addEventListener("click", function () { speak(t.term); });
-      $$(".opt-btn", inner).forEach(function (b) {
-        b.addEventListener("click", function () { choose(b); });
-      });
-      function skip() {
-        if (answered) return;
+      function lock() {
         answered = true;
         $("#mc-skip").disabled = true;
         $$(".opt-btn", inner).forEach(function (b) { b.disabled = true; });
-        wrongCount++;
-        addMiss(s.id, ti);
-        resetHit(s.id, ti);
         $$('.opt-btn[data-opt="' + ti + '"]', inner)[0].classList.add("correct");
-        $("#learn-feedback").innerHTML = '<div class="feedback-msg no">Sorun değil — doğrusu işaretlendi, tur içinde tekrar soracağım.</div>';
-        queue.push(queue.shift());
-        persistState();
-        updateProgress();
-        setTimeout(ask, 2200);
       }
+      function choose(btn) {
+        if (answered) return;
+        lock();
+        if (+btn.dataset.opt === ti) {
+          stage[ti]++;
+          decMiss(s.id, ti);
+          queue.shift();
+          $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">' + (reverse
+            ? "Doğru! Sırada ipucuyla yazmak var."
+            : "Doğru, anlamını biliyorsun! Sırada İngilizcesini seçmek var.") + "</div>";
+          if (reverse) speak(t.term);
+          persistState();
+          updateProgress();
+          pageTimeout(ask, 900);
+        } else {
+          btn.classList.add("wrong");
+          stats.wrong++;
+          roundStats.missed++;
+          addMiss(s.id, ti);
+          resetHit(s.id, ti);
+          requeue(ti);
+          showAnswer(ti, "Henüz değil — doğrusu işaretlendi. Biraz sonra yeniden soracağım.",
+            "", "Doğrusu", t.term + " — " + t.def);
+        }
+      }
+      function skip() {
+        if (answered) return;
+        lock();
+        stats.revealed++;
+        roundStats.missed++;
+        resetHit(s.id, ti);
+        requeue(ti);
+        showAnswer(ti, "Sorun değil — doğrusu işaretlendi. Biraz sonra yeniden soracağım.",
+          "", "Doğrusu", t.term + " — " + t.def);
+      }
+      // İngilizceden soruluyorsa kelimeyi otomatik seslendir; Türkçeden
+      // soruluyorsa seslendirme cevabı ele vereceği için cevaptan sonra çalar.
+      if (!reverse) {
+        speak(t.term);
+        $("#q-speak").addEventListener("click", function () { speak(t.term); });
+      }
+      $$(".opt-btn", inner).forEach(function (b) {
+        b.addEventListener("click", function () { choose(b); });
+      });
       $("#mc-skip").addEventListener("click", skip);
       keyHandler = function (e) {
         if (e.key === "ArrowDown") {
@@ -1047,99 +1278,150 @@
 
     function askWritten(ti) {
       var t = s.terms[ti];
-      var isReview = stage[ti] === 2;
+      var assisted = stage[ti] === 2;
+      var isReview = stage[ti] === LEARN_DONE;
+      var shown = assisted ? 1 : 0; // açık harf sayısı; 0 = ipucu kapalı
+      var hintUsed = false;
       var inner = $("#learn-inner");
-      inner.innerHTML = '<div class="learn-card">' +
-        '<div class="q-label">' + (isReview ? "Tekrar · Tanım" : "Tanım") + "</div>" +
+      inner.innerHTML = '<div class="learn-card">' + stageHtml(ti) +
+        '<div class="q-label">Türkçe anlamı</div>' +
         '<div class="q-word">' + esc(t.def) + "</div>" +
         learnNoteHtml(t) +
         '<div id="learn-feedback"></div>' +
-        '<div class="q-prompt">Cevabını yaz (' + esc(s.langs[0]) + ")</div>" +
+        '<div class="q-prompt">' + (assisted ? "İpucuna bakarak" : "Kendin hatırla:") +
+        " " + esc(s.langs[0]) + " karşılığını yaz</div>" +
+        '<div class="hint-row" id="learn-hint-row">' +
+        '<div class="letter-hint" id="learn-hint" hidden></div>' +
+        '<button type="button" class="btn ghost small" id="learn-hint-btn"></button></div>' +
         '<form class="learn-form" id="learn-form" autocomplete="off">' +
-        '<input type="text" id="learn-input" placeholder="Cevabını yaz" autocomplete="off" />' +
+        '<input type="text" id="learn-input" placeholder="Cevabını yaz" autocomplete="off" autocapitalize="off" spellcheck="false" />' +
         '<button type="button" class="btn ghost" id="learn-skip">Bilmiyorum <kbd class="key-hint">↓</kbd></button>' +
         '<button type="submit" class="btn primary">Cevapla <kbd class="key-hint">Enter</kbd></button>' +
         "</form></div>";
       var input = $("#learn-input");
+      var hintEl = $("#learn-hint");
+      var hintBtn = $("#learn-hint-btn");
+
+      // İpucu cevap alanının dışında gösterilir; yazılan metne dokunmaz.
+      function paintHint() {
+        var hint = letterHint(t.term, shown);
+        hintEl.hidden = !shown;
+        if (shown) {
+          hintEl.innerHTML = hint.html;
+          hintEl.setAttribute("data-hint", hint.mask);
+          hintEl.setAttribute("aria-label", "İpucu: " + hint.mask);
+        }
+        hintBtn.innerHTML = (shown ? "Bir harf aç" : "İpucu") + ' <kbd class="key-hint">↑</kbd>';
+        hintBtn.disabled = answered || shown >= hint.letters;
+      }
+      function revealLetter() {
+        if (answered || hintBtn.disabled) return;
+        shown++;
+        hintUsed = true;
+        paintHint();
+        input.focus();
+      }
+      var answered = false;
+      paintHint();
       input.focus();
 
-      var answered = false;
       function grade(given, skipped) {
         if (answered) return;
         if (!skipped && !given.trim()) return; // boş cevapla Enter yanlış sayılmasın
         answered = true;
         input.disabled = true;
+        hintBtn.disabled = true;
         var validAnswers = acceptedTerms(s, ti);
         var match = skipped ? { correct: false } : writtenAnswerMatch(given, validAnswers);
         if (match.correct) {
-          stage[ti] = 2;
-          decMiss(s.id, ti);
-          addHit(s.id, ti);
+          // Yalnızca ipucusuz yazılan cevap yardımsız başarıdır ve
+          // genel doğru serisine (kesin öğrenildi) katkı sağlar.
+          var unaided = !assisted && !hintUsed;
+          var msg;
+          if (unaided) {
+            stage[ti] = LEARN_DONE;
+            decMiss(s.id, ti);
+            addHit(s.id, ti);
+            stats.unaided++;
+            roundStats.unaided++;
+            msg = isReview ? "Harikasın! Hâlâ aklında." : "Harikasın! Kendin hatırladın.";
+          } else {
+            stage[ti] = 3;
+            stats.hinted++;
+            roundStats.hinted++;
+            msg = assisted
+              ? "Doğru! Bir dahaki sefere ipucusuz deneyeceksin."
+              : "Doğru! İpucuyla buldun; bir dahaki sefere ipucusuz soracağım.";
+          }
+          if (match.typo) msg += " Doğru yazımı: <strong>" + esc(match.answer) + "</strong>";
+          else if (!isCorrectAnswer(given, t.term)) msg += " Bu eş anlamlı cevap da kabul edildi: " + esc(given);
           queue.shift();
           $("#learn-form").style.display = "none";
-          $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">' +
-            (match.typo
-              ? "Doğru kabul edildi. Doğru yazımı: <strong>" + esc(match.answer) + "</strong>"
-              : (isCorrectAnswer(given, t.term) ? "Harikasın!" :
-                "Harikasın! Bu eş anlamlı cevap da kabul edildi: " + esc(given))) + "</div>";
+          $("#learn-hint-row").style.display = "none";
+          $("#learn-feedback").innerHTML = '<div class="feedback-msg ok">' + msg + "</div>";
           speak(t.term);
           persistState();
           updateProgress();
-          setTimeout(ask, match.typo || t.note ? 2200 : 1000);
-        } else {
-          wrongCount++;
-          addMiss(s.id, ti);
-          resetHit(s.id, ti);
-          if (isReview) stage[ti] = 1; // tekrarında yanıldı: yeniden yazması gerekecek
-          queue.push(queue.shift());
-          persistState();
-          $("#learn-form").style.display = "none";
-          $("#learn-feedback").innerHTML =
-            (skipped || !given.trim() ? "" :
-              '<div class="ans-label">Senin cevabın</div><div class="ans-box no">' + esc(given) + "</div>") +
-            '<div class="ans-label">' + (validAnswers.length > 1 ? "Kabul edilen cevaplar" : "Doğru cevap") +
-            '</div><div class="ans-box ok">' + esc(acceptedAnswerText(s, ti)) +
-            ' <button class="icon-btn small" id="ans-speak" title="Sesli oku">' + I.audio + "</button></div>" +
-            '<div class="btn-row" style="justify-content:flex-start;margin-top:1.25rem">' +
-            '<button class="btn primary" id="learn-cont">Devam et <kbd class="key-hint">Enter / →</kbd></button></div>';
-          speak(t.term); // doğru cevabı otomatik seslendir
-          $("#ans-speak").addEventListener("click", function () { speak(t.term); });
-          var went = false;
-          var shownAt = Date.now();
-          function cont() { if (went) return; went = true; ask(); }
-          $("#learn-cont").addEventListener("click", cont);
-          // Cevabı gönderen Enter'ın (basılı tutma/çift basma) ekranı hemen geçmemesi için
-          // kısa bir bekleme süresi ve tuş tekrarı koruması
-          keyHandler = function (e) {
-            if ((e.key === "Enter" || e.key === "ArrowRight") &&
-                !e.repeat && Date.now() - shownAt > 500) cont();
-          };
+          pageTimeout(ask, match.typo || t.note ? 2200 : 1200);
+          return;
         }
+        // Yazma aşamasında zorlanılan terim ipucuyla yazma aşamasına döner.
+        if (skipped) stats.revealed++;
+        else {
+          stats.wrong++;
+          addMiss(s.id, ti);
+        }
+        roundStats.missed++;
+        resetHit(s.id, ti);
+        stage[ti] = 2;
+        requeue(ti);
+        $("#learn-form").style.display = "none";
+        $("#learn-hint-row").style.display = "none";
+        showAnswer(ti,
+          (skipped ? "Sorun değil" : "Henüz değil") + " — doğrusu aşağıda. Biraz sonra ipucuyla yeniden soracağım.",
+          skipped ? "" : given,
+          validAnswers.length > 1 ? "Kabul edilen cevaplar" : "Doğru cevap",
+          acceptedAnswerText(s, ti));
       }
       $("#learn-form").addEventListener("submit", function (e) { e.preventDefault(); grade(input.value, false); });
       $("#learn-skip").addEventListener("click", function () { grade("", true); });
-      // Input odaktayken genel klavye dinleyicisi çalışmaz; aşağı okunu burada
-      // doğrudan "Bilmiyorum" kısayolu olarak ele al.
-      input.addEventListener("keydown", function (e) {
+      hintBtn.addEventListener("click", revealLetter);
+      // Input odaktayken genel klavye dinleyicisi çalışmaz; kısayolları
+      // burada doğrudan ele al: ↓ Bilmiyorum, ↑ ipucu.
+      function keys(e) {
         if (e.key === "ArrowDown") { e.preventDefault(); grade("", true); }
-      });
-      keyHandler = function (e) {
-        if (e.key === "ArrowDown") { e.preventDefault(); grade("", true); }
-      };
+        else if (e.key === "ArrowUp") { e.preventDefault(); revealLetter(); }
+      }
+      input.addEventListener("keydown", keys);
+      keyHandler = keys;
+    }
+
+    function stageSummaryHtml(c) {
+      var rows = [["Tamamlandı", c[LEARN_DONE], "ok"]].concat(LEARN_STAGES.slice().reverse().map(function (name, n) {
+        var st = LEARN_STAGES.length - 1 - n;
+        return [name, c[st], ""];
+      }));
+      return '<ul class="stage-summary" aria-label="Kelimeler hangi aşamada">' + rows.map(function (r) {
+        return '<li class="' + r[2] + '"><span class="stage-summary-name">' + r[0] + "</span>" +
+          '<span class="stage-summary-bar"><i style="width:' + (r[1] / total * 100) + '%"></i></span>' +
+          "<b>" + r[1] + "</b></li>";
+      }).join("") + "</ul>";
     }
 
     function checkpoint() {
       keyHandler = null;
       var c = counts();
+      var r = roundStats || { unaided: 0, hinted: 0, missed: 0 };
       $("#learn-inner").innerHTML = '<div class="finish-screen">' +
         '<div class="big-emoji">💪</div>' +
         "<h1>" + roundNum + ". tur bitti — harika gidiyorsun!</h1>" +
-        "<p>Bir terimi tam öğrenmek için önce doğru şıkkı seçmen, sonra terimi yazman gerekiyor.</p>" +
+        "<p>Her kelime dört aşamadan geçer: anlamını seç, İngilizcesini seç, ipucuyla yaz, kendin hatırla.</p>" +
         '<div class="finish-stats">' +
-        '<div class="stat-pill ok"><div class="num">' + c[2] + '</div><div class="lbl">Öğrenildi</div></div>' +
-        '<div class="stat-pill mid"><div class="num">' + c[1] + '</div><div class="lbl">Devam ediyor</div></div>' +
-        '<div class="stat-pill"><div class="num">' + c[0] + '</div><div class="lbl">Kalan</div></div>' +
+        '<div class="stat-pill ok"><div class="num">' + r.unaided + '</div><div class="lbl">Kendin hatırladın</div></div>' +
+        '<div class="stat-pill mid"><div class="num">' + r.hinted + '</div><div class="lbl">İpucuyla yazdın</div></div>' +
+        '<div class="stat-pill"><div class="num">' + r.missed + '</div><div class="lbl">Tekrar edilecek</div></div>' +
         "</div>" +
+        stageSummaryHtml(c) +
         '<div class="btn-row"><button class="btn primary big" id="learn-next-round">Devam et <kbd class="key-hint">Enter / →</kbd></button></div></div>';
       var went = false;
       var shownAt = Date.now();
@@ -1154,15 +1436,18 @@
     function finish() {
       keyHandler = null;
       clearState(); // set bitti, sonraki Öğren sıfırdan başlasın
+      if (persist) markSetDone(s.id);
       setProgress(100);
       $("#learn-inner").innerHTML = '<div class="finish-screen">' +
         '<div class="big-emoji">🎉</div>' +
-        "<h1>Tebrikler! Hepsini öğrendin.</h1>" +
-        "<p>" + total + " terimin tamamını hem seçerek hem yazarak doğru bildin." +
-        (wrongCount ? " Toplam " + wrongCount + " yanlış deneme yaptın." : " Hem de hiç hata yapmadan!") + "</p>" +
+        "<h1>Tebrikler! Hepsini kendin hatırladın.</h1>" +
+        "<p>" + total + " terimin Türkçesini görünce İngilizcesini ipucusuz yazdın." +
+        (stats.wrong ? " Yol boyunca " + stats.wrong + " yanlış deneme yaptın; bu da öğrenmenin parçası." : " Hem de hiç yanlış yapmadan!") + "</p>" +
         '<div class="finish-stats">' +
-        '<div class="stat-pill ok"><div class="num">' + total + '</div><div class="lbl">Öğrenilen</div></div>' +
-        '<div class="stat-pill no"><div class="num">' + wrongCount + '</div><div class="lbl">Yanlış deneme</div></div>' +
+        '<div class="stat-pill ok"><div class="num">' + total + '</div><div class="lbl">Kendin hatırladın</div></div>' +
+        '<div class="stat-pill mid"><div class="num">' + stats.hinted + '</div><div class="lbl">İpucuyla yazdın</div></div>' +
+        '<div class="stat-pill no"><div class="num">' + stats.wrong + '</div><div class="lbl">Yanlış deneme</div></div>' +
+        (stats.revealed ? '<div class="stat-pill"><div class="num">' + stats.revealed + '</div><div class="lbl">Cevabına baktın</div></div>' : "") +
         "</div>" +
         '<div class="btn-row">' +
         '<button class="btn primary big" id="learn-again">Baştan başla</button>' +
@@ -1397,9 +1682,18 @@
 
     var t0 = performance.now();
     var timerEl = $("#match-timer");
-    matchTimerId = setInterval(function () {
-      timerEl.textContent = ((performance.now() - t0) / 1000).toFixed(1) + " sn";
-    }, 100);
+    var pausedAt = null;
+    function tickMatch() { timerEl.textContent = ((performance.now() - t0) / 1000).toFixed(1) + " sn"; }
+    matchTimerId = setInterval(tickMatch, 250);
+    pagePauseHandler = function (hidden) {
+      if (hidden && pausedAt === null) {
+        pausedAt = performance.now(); clearInterval(matchTimerId); matchTimerId = null;
+      } else if (!hidden && pausedAt !== null) {
+        t0 += performance.now() - pausedAt; pausedAt = null;
+        matchTimerId = setInterval(tickMatch, 250);
+      }
+    };
+    if (background) pagePauseHandler(true);
 
     var selected = null;
     var matched = 0;
@@ -1427,11 +1721,11 @@
           pop.className = "penalty-pop";
           pop.textContent = "+1 sn";
           timerEl.appendChild(pop);
-          setTimeout(function () { pop.remove(); }, 700);
+          pageTimeout(function () { pop.remove(); }, 700);
           a.classList.remove("selected");
           a.classList.add("error");
           b.classList.add("error");
-          setTimeout(function () {
+          pageTimeout(function () {
             a.classList.remove("error");
             b.classList.remove("error");
             busy = false;
@@ -1443,6 +1737,7 @@
     function finishMatch() {
       clearInterval(matchTimerId);
       matchTimerId = null;
+      pagePauseHandler = null;
       var secs = (performance.now() - t0) / 1000;
       var best = store.get("match_best_" + s.id, null);
       var record = best == null || secs < best;
@@ -1725,6 +2020,55 @@
     starter(s, idx);
   }
 
+  function renderBackup() {
+    var native = window.QuizlenAndroid;
+    setPage('<div class="container backup-page"><h1 class="page-title">Yedekleme</h1>' +
+      '<p>Hasan ve Zehra profillerinin ilerlemesi, yıldızları, kursları ve ayarları birlikte yedeklenir.</p>' +
+      '<section class="backup-card"><h2>Güncellerken</h2><p>Yeni APK’yı uygulamayı silmeden açıp <strong>Güncelle</strong> seçeneğini kullan. İlerlemen korunur.</p>' +
+      '<p>Silip yeniden kuracaksan önce yedek al. Kurulumdan sonra <strong>Yedeği geri yükle</strong> ile bu dosyayı seç.</p></section>' +
+      (native ? '<section class="backup-card"><h2>Otomatik dosya yedeği</h2><p>Bir kez Belgeler veya İndirilenler içinde dosya seç. İlerlemen değiştikçe dosya güncellenir; uygulama silinse de bu dosya kalır. Son kaydın başarılı olduğunu aşağıdan kontrol et.</p>' +
+      '<button class="btn" id="backup-auto">Otomatik yedek dosyası seç</button><p id="backup-auto-status" role="status"></p></section>' :
+      '<section class="backup-card"><h2>Tarayıcıdan APK’ya geçiş</h2><p>Buradan yedek dosyanı indir. Telefonda APK’yı açıp aynı dosyayı geri yükle.</p></section>') +
+      '<section class="backup-card"><h2>Dosyayla yedekleme</h2><div class="backup-actions"><button class="btn" id="backup-export">Yedek dosyası kaydet</button>' +
+      '<button class="btn ghost" id="backup-import">Yedeği geri yükle</button></div><input id="backup-file" type="file" accept=".json,application/json" hidden />' +
+      '<p>Geri yükleme iki profilin mevcut kayıtlarını seçtiğin yedekle değiştirir. Önce mevcut kayıtlarını yedekleyebilirsin.</p>' +
+      '<p id="backup-notice" role="status" aria-live="polite"></p></section>' +
+      '<p class="prog-desc">Android sistem yedeği de açıktır; geri yüklenmesi telefonun yedekleme ayarlarına bağlıdır. Silmeden önce dosya yedeğini kontrol et.</p></div>', { side: 'backup' });
+    function updateStatus() {
+      if (!native || !$('#backup-auto-status')) return;
+      var status = JSON.parse(native.backupStatus());
+      $('#backup-auto-status').textContent = status.error || (status.enabled ? (status.lastSaved ? 'Son başarılı yedek: ' + new Date(status.lastSaved).toLocaleString('tr-TR') : 'Dosya seçildi; ilk yedek hazırlanıyor.') : 'Otomatik yedek henüz açılmadı.');
+    }
+    updateStatus();
+    window.quizlenBackupNotice = function (message) {
+      if ($('#backup-notice')) $('#backup-notice').textContent = message;
+      updateStatus();
+    };
+    $('#backup-export').onclick = function () {
+      try { QuizlenStorage.exportFile(); } catch (e) { window.quizlenBackupNotice('Yedek kaydedilemedi: ' + e.message); }
+    };
+    if (native) $('#backup-auto').onclick = function () { native.enableAutoBackup(); };
+    $('#backup-import').onclick = function () { if (native) native.importBackup(); else $('#backup-file').click(); };
+    $('#backup-file').onchange = function (event) {
+      var file = event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Yedek en fazla 5 MB olabilir.'); return; }
+      var reader = new FileReader();
+      reader.onload = function () { window.quizlenImportBackup(reader.result); };
+      reader.onerror = function () { alert('Dosya okunamadı.'); };
+      reader.readAsText(file);
+    };
+  }
+  window.quizlenImportBackup = function (text) {
+    try {
+      var data = QuizlenStorage.validate(text);
+      if (!confirm('Bu yedek iki profilin mevcut kayıtlarının yerini alacak. Devam edilsin mi?')) return;
+      QuizlenStorage.replaceAll(data);
+      location.reload();
+    } catch (e) { alert('Yedek yüklenemedi: ' + e.message); }
+  };
+
   /* ================= YÖNLENDİRİCİ ================= */
   function route() {
     var hash = location.hash.replace(/^#\/?/, "");
@@ -1734,6 +2078,7 @@
     if (parts[0] === "kitaplik") { renderLibrary(); return; }
     if (parts[0] === "posterler") { renderPosterSets(); return; }
     if (parts[0] === "ilerleme") { renderProgress(); return; }
+    if (parts[0] === "yedek") { renderBackup(); return; }
     if (parts[0] === "kurs") { renderCourse(); return; }
     if (parts[0] === "gramer") { renderGrammar(); return; }
     if (parts[0] === "quiz") { renderQuiz(); return; }
